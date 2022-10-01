@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Diagnostics;
+using System.Threading;
+using System.ComponentModel;
 
 namespace Allegro_PCIE_Lane_Parser
 {
@@ -15,10 +17,18 @@ namespace Allegro_PCIE_Lane_Parser
         private string viaReport = "ViaByNetReport.csv";
         private string etchLengthReport = "EtchLengthByLayerReport.csv";
 
+        private bool pinPairFlag = false;
+        private bool viaFlag = false;
+        private bool etchLengthFlag = false;
+
+        private string viaListReportLocation = "";
+        private string etchLenReportLocation = "";
+        private string pinPairReportLocation = "";
+
         MainWindow mw = (MainWindow)Application.Current.MainWindow;
 
-        private string currentBrdPath { get; set; }
-        private string cadenceToolsPath { get; set; }
+        private string currentBrdPath;
+        private string cadenceToolsPath;
 
         public BrdReportGen(string path, string toolsPath)
         {
@@ -26,14 +36,26 @@ namespace Allegro_PCIE_Lane_Parser
             cadenceToolsPath = toolsPath;
         }
 
+        private void CurrentReportStatus()
+        {
+            pinPairFlag = File.Exists(currentBrdPath + @"\" + pinPairReport);
+            viaFlag = File.Exists(currentBrdPath + @"\" + viaReport);
+            etchLengthFlag = File.Exists(currentBrdPath + @"\" + etchLengthReport);
+        }
+
+        private void UpdateReportLocations()
+        {
+            viaListReportLocation = $@"{currentBrdPath}\ViaByNetReport.csv";
+            etchLenReportLocation = $@"{currentBrdPath}\EtchLengthByLayerReport.csv";
+            pinPairReportLocation = $@"{currentBrdPath}\PinPairReport.csv";
+        }
+
 
         public bool SearchForAllReports()
         {
-            bool pinPairFlag = File.Exists(currentBrdPath + @"\" + pinPairReport);
-            bool viaFlag = File.Exists(currentBrdPath + @"\" + viaReport); ;
-            bool etchLengthFlag = File.Exists(currentBrdPath + @"\" + etchLengthReport); ;
-            
-            mw.mlb_textBoxValue = "Now searching for the following Allegro generated reports (Pin pair, Via list, Etch length) \n";
+            CurrentReportStatus();
+
+            mw.mlb_textBoxValue += "Now searching for the following Allegro generated reports (Pin pair, Via list, Etch length) \n";
 
             // Check if each file exist
             if (pinPairFlag)
@@ -68,11 +90,15 @@ namespace Allegro_PCIE_Lane_Parser
             // If one or more files is missing, begin generating files. Otherwise move on to next step. 
             if (pinPairFlag && viaFlag && etchLengthFlag)
             {
-                mw.mlb_textBoxValue += "All Allegro generated reports have been found. Now moving to the next step. \n";
+                mw.mlb_textBoxValue += "All Allegro necessary reports have been found. You can click on either 'Analyze Board File' or 'Start/Run' to move to the next step. \n";
+                mw.mlb_analyzeBoard.IsEnabled = true;
+                mw.mlb_runProgram.IsEnabled = true;
             }
             else
             {
-                mw.mlb_textBoxValue += "One or more files are missing. Now generating all reports. \n";
+                mw.mlb_textBoxValue += "-------------------- \n";
+                mw.mlb_textBoxValue += "One or more files are missing. Now beginning to generate all reports. \n";
+                //mw.mlb_textBoxValue += "One or more files are missing. Click 'Start/Run' to generate all reports. \n";
             }
 
             return (pinPairFlag && viaFlag && etchLengthFlag);
@@ -82,39 +108,59 @@ namespace Allegro_PCIE_Lane_Parser
         public void GenerateAllReports(string brdFile)
         {
             string reportCmd = $@"{cadenceToolsPath}\report.exe";
-            string viaListStr = $@"{currentBrdPath}\ViaByNetReport.csv";
-            string etchLenStr = $@"{currentBrdPath}\EtchLengthByLayerReport.csv";
-            string pinPairStr = $@"{currentBrdPath}\PinPairReport.csv";
+            UpdateReportLocations();
 
             string[] commandsArr =
             {
-                $@"{reportCmd} -v vialist_net ""{brdFile}"" ""{viaListStr}""",
-                $@"{reportCmd} -v ell ""{brdFile}"" ""{etchLenStr}""",
-                $@"{reportCmd} -v elp ""{brdFile}"" ""{pinPairStr}""",
+                $@"{reportCmd} -v elp ""{brdFile}"" ""{pinPairReportLocation}""",
+                $@"{reportCmd} -v ell ""{brdFile}"" ""{etchLenReportLocation}""",
+                $@"{reportCmd} -v vialist_net ""{brdFile}"" ""{viaListReportLocation}""",
             };
 
             mw.mlb_textBoxValue += "-------------------- \n";
             mw.mlb_textBoxValue += "Now generating the via list report. \n";
             mw.mlb_textBoxValue += "Now generating the etch length report. \n";
             mw.mlb_textBoxValue += "Now generating the pin pair report -- This generation may take a while. \n";
-            
-            ExecuteCommand(commandsArr);
+
+            ProcessStart(commandsArr);
 
             mw.mlb_textBoxValue += "All reports are now being generated in the background. Please check the folder of your board file to ensure completion. \n";
         }
 
-
-        private void ExecuteCommand(string[] Commands)
+        public async void GeneratingStatus()
         {
-            ProcessStartInfo ProcessInfo;
-            Process Process;
+            while (!pinPairFlag)
+            {
+                await Task.Delay(2000);
+                CurrentReportStatus();
+                mw.mlb_textBoxValue += "  --- Generating \n";
+            }
 
-            ProcessInfo = new ProcessStartInfo("cmd.exe", $"/K {Commands[0]}&{Commands[1]}&{Commands[2]}");
+            mw.mlb_textBoxValue += "*** All reports have been generated. Click on 'Analyze Board File' to move to the next step. \n";
+            mw.mlb_analyzeBoard.IsEnabled = true;
+        }
 
-            ProcessInfo.CreateNoWindow = true;
-            ProcessInfo.UseShellExecute = false;
+        public (string, string, string) GetReportLocations()
+        {
+            UpdateReportLocations();
+            return (viaListReportLocation, etchLenReportLocation, pinPairReportLocation);
+        }
 
-            Process = Process.Start(ProcessInfo);
+        private void ProcessStart(string[] Commands)
+        {
+            Parallel.ForEach(Commands, command =>
+                {
+                    ProcessStartInfo ProcessInfo;
+                    Process myProcess;
+
+                    ProcessInfo = new ProcessStartInfo("cmd.exe", $"/c {command}");
+
+                    ProcessInfo.RedirectStandardOutput = true;
+                    ProcessInfo.CreateNoWindow = true;
+                    ProcessInfo.UseShellExecute = false;
+
+                    myProcess = Process.Start(ProcessInfo);
+                });
         }
     }
 }

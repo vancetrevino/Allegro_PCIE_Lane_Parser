@@ -23,7 +23,7 @@
                     <Grid Margin="10" ShowGridLines="false">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"></ColumnDefinition>
-                            <ColumnDefinition Width="100"></ColumnDefinition>
+                            <ColumnDefinition Width="125"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="auto"></RowDefinition>
@@ -40,7 +40,7 @@
                         <Button Name="mlb_btnOpenFile" Click="mlb_btnOpenFile_Click" DockPanel.Dock="Right" Grid.Column="1" Grid.Row="1">Open File</Button>
 
                         <Border BorderThickness="1" BorderBrush="#FF8E8F94" Grid.Column="0" Grid.Row="2" Margin="0,10,10,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                            <TextBlock x:Name="mlb_textBox" HorizontalAlignment="Stretch"  TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="3,0,0,0">
+                            <TextBlock x:Name="mlb_textBox" HorizontalAlignment="Stretch"  TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="3,0,0,0" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
                                 <Run Text="Welcome to the HPE PCIE lane parser tool."/><LineBreak/>
                                 <Run Text="-- Written by Vance Trevino"/><LineBreak/><Run/><LineBreak/>
                                 <Run Text="To get started, click the &quot;Open File&quot; button and navigate to the Allegro layout board file that you would like to parse the PCIE lanes for."/><LineBreak/>
@@ -48,7 +48,8 @@
                                 <Run Text="Clicking this button will begin the program. "/></TextBlock>
                         </Border>
 
-                        <Button Name="mlb_runProgram" Click="mlb_runProgram_Click" DockPanel.Dock="Right" Grid.Column="1" Grid.Row="2" Margin="0,0,0,10" Padding="0,3,0,3" VerticalAlignment="Center" IsEnabled="False">Start/Run</Button>
+                        <Button x:Name="mlb_analyzeBoard" Click="mlb_analyzeBoard_Click" Grid.Column="1" Grid.Row="2" Margin="0,155,0,0" Padding="0,3,0,3" VerticalAlignment="Top" IsEnabled="False" Content="Analyze Board File"/>
+                        <Button Name="mlb_runProgram" Click="mlb_runProgram_Click" Grid.Column="1" Grid.Row="2" Margin="0,20,0,10" Padding="0,3,0,3" VerticalAlignment="Center" IsEnabled="False" Content="Start/Run"/>
                     </Grid>
                 </TabItem>
 

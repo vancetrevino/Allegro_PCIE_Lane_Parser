@@ -14,6 +14,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
+using Allegro_PCIE_Lane_Parser.Code_Files;
 
 namespace Allegro_PCIE_Lane_Parser
 {
@@ -23,6 +24,9 @@ namespace Allegro_PCIE_Lane_Parser
     public partial class MainWindow : Window
     {
         public string mlb_directory = "";
+        public string viaReportLocation = "";
+        public string etchLengthReportLocation = "";
+        public string pinPairReportLocation = "";
 
         public MainWindow()
         {
@@ -49,8 +53,21 @@ namespace Allegro_PCIE_Lane_Parser
             {
                 mlb_directory = Path.GetDirectoryName(openFileDialog.FileName);
                 mlb_boardFileLocation.Text = openFileDialog.FileName;
-                mlb_runProgram.IsEnabled = true;
-            }
+
+                mlb_textBox.Text = String.Empty;
+                mlb_textBox.Text = "A valid board layout file has been detected. \n";
+
+                // Allegro report check and generation 
+                BrdReportGen mlbReports = new BrdReportGen(mlb_directory, @"C:\Cadence\SPB_17.2\tools\bin");
+                bool reportCheck = mlbReports.SearchForAllReports();
+                if (!reportCheck) 
+                { 
+                    mlbReports.GenerateAllReports(mlb_boardFileLocation.Text);
+                    mlbReports.GeneratingStatus();
+                }
+
+                (viaReportLocation, etchLengthReportLocation, pinPairReportLocation) = mlbReports.GetReportLocations();
+    }
             else
             {
                 mlb_boardFileLocation.Text = "Invalid board file. Please input a valid board file with the extension '.brd'";
@@ -62,17 +79,23 @@ namespace Allegro_PCIE_Lane_Parser
 
         }
 
+        private void mlb_analyzeBoard_Click(object sender, RoutedEventArgs e)
+        {
+            // Parse the generated Allegro reports
+            AllegroReportParse parser = new AllegroReportParse(mlb_directory, viaReportLocation, etchLengthReportLocation, pinPairReportLocation);
+            parser.ParsePinPairReport();
+        }
+
         private void mlb_runProgram_Click(object sender, RoutedEventArgs e)
         {
             // Will need to add a class/function to parse allegro reports to get total lane and connector usage
             mlb_textBox.Text = String.Empty;
 
             // Allegro report check and generation 
-            BrdReportGen mlbReports = new BrdReportGen(mlb_directory, @"C:\Cadence\SPB_17.2\tools\bin");
-            bool reportCheck = mlbReports.SearchForAllReports();
-            if (!reportCheck) { mlbReports.GenerateAllReports(mlb_boardFileLocation.Text); }
+            //BrdReportGen mlbReports = new BrdReportGen(mlb_directory, @"C:\Cadence\SPB_17.2\tools\bin");
+            
 
-            // Parse Allegro reports
+            // Parse the generated Allegro reports
 
         }
     }

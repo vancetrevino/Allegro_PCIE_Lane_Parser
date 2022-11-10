@@ -82,8 +82,19 @@ namespace Allegro_PCIE_Lane_Parser
         private void mlb_analyzeBoard_Click(object sender, RoutedEventArgs e)
         {
             // Parse the generated Allegro reports
-            AllegroReportParse parser = new AllegroReportParse(mlb_directory, viaReportLocation, etchLengthReportLocation, pinPairReportLocation);
+            AllegroReportParse parser = new AllegroReportParse(viaReportLocation, etchLengthReportLocation, pinPairReportLocation);
+
             parser.ParsePinPairReport();
+            parser.ParseLengthByLayerReport();
+            parser.ParseViaReport();
+
+            var pcieLaneInfo = parser.GetPcieLaneInfo();
+            var clockLanesInfo = parser.GetClockLaneInfo();
+            var upiLanesInfo = parser.GetUpiLaneInfo();
+            var usbLanesInfo = parser.GetUsbLaneInfo();
+
+
+
         }
 
         private void mlb_runProgram_Click(object sender, RoutedEventArgs e)

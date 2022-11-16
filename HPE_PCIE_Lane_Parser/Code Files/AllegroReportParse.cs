@@ -13,6 +13,17 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 {
     internal class AllegroReportParse
     {
+        // Class specific variables & Constructor
+        private string viaListReportLocation { get; set; }
+        private string etchLenReportLocation { get; set; }
+        private string pinPairReportLocation { get; set; }
+        public AllegroReportParse(string viaListLocation, string etchLenLocation, string pinPairLocation)
+        {
+            viaListReportLocation = viaListLocation;
+            etchLenReportLocation = etchLenLocation;
+            pinPairReportLocation = pinPairLocation;
+        }
+
         private string pcieNetIdentifier = "P5E";
         private string clockNetIdentifier = "CLK";
         private string upiNetIdentifier = "UPI";
@@ -22,11 +33,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
 
         // Extra variables
-        private int totalConnNum = 0;
-        private int totalRoutingLayers = 0;
-
         private HashSet<string> connectorRefDes = new HashSet<string>();
-        private HashSet<string> routingLayers = new HashSet<string>();
 
         MainWindow mw = (MainWindow)Application.Current.MainWindow;
 
@@ -35,18 +42,6 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
         private List<DiffPairLane> clockLanesInfo = new List<DiffPairLane>();
         private List<DiffPairLane> upiLanesInfo = new List<DiffPairLane>();
         private List<DiffPairLane> usbLanesInfo = new List<DiffPairLane>();
-
-        // Class specific variables
-        private string viaListReportLocation { get; set; }
-        private string etchLenReportLocation { get; set; }
-        private string pinPairReportLocation { get; set; }
-
-        public AllegroReportParse(string viaListLocation, string etchLenLocation, string pinPairLocation)
-        {
-            viaListReportLocation = viaListLocation;
-            etchLenReportLocation = etchLenLocation;
-            pinPairReportLocation = pinPairLocation;
-        }
 
         // Method to read in the pin pair report and organize diff pairs in the separate lists
         public void ParsePinPairReport()
@@ -79,15 +74,28 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                                 if (pcieRefDes != null)
                                 {
                                     connectorRefDes.Add(pcieRefDes);
-                                    totalConnNum = connectorRefDes.Count;
                                 }
 
                                 pcieLanesInfo.Add(pcieDiffPair);
                             }
-                        }
 
-                        // Continue parse and check for other diff pairs (clk, usb, etc)
-                        // else if ()
+                            // Continue parse and check for other diff pairs (clk, usb, upi)
+                            else if (netName.Contains(clockNetIdentifier))
+                            {
+                                DiffPairLane clockDiffPair = new DiffPairLane(netName, pinPair, totalLength);
+                                clockLanesInfo.Add(clockDiffPair);
+                            }
+                            else if (netName.Contains(upiNetIdentifier))
+                            {
+                                DiffPairLane upiDiffPair = new DiffPairLane(netName, pinPair, totalLength);
+                                upiLanesInfo.Add(upiDiffPair);
+                            }
+                            else if (netName.Contains(usbNetIdentifier))
+                            {
+                                DiffPairLane usbDiffPair = new DiffPairLane(netName, pinPair, totalLength);
+                                usbLanesInfo.Add(usbDiffPair);
+                            }
+                        }
                     }
                 }
             }
@@ -118,31 +126,42 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                             // Check for PCIE lane diff pair and save it into list
                             if (netName.Contains(pcieNetIdentifier))
                             {
-                                var lane = pcieLanesInfo.First((obj => obj.NetName.Contains(netName)));
-                                if (lane != null)
+                                var pcieLane = pcieLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                if (pcieLane != null)
                                 {
-                                    lane.LayerAndLengths.Add(layer, length);
-                                    routingLayers.Add(layer);
-                                    totalRoutingLayers = routingLayers.Count;
+                                    pcieLane.LayerAndLengths.Add(layer, length);
+                                }
+                            }
+
+                            // Continue parse and check for other diff pairs (clk, usb, upi)
+                            else if (netName.Contains(clockNetIdentifier))
+                            {
+                                var clockLane = clockLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                if (clockLane != null)
+                                {
+                                    clockLane.LayerAndLengths.Add(layer, length);
+                                }
+                            }
+                            else if (netName.Contains(upiNetIdentifier))
+                            {
+                                var upiLane = upiLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                if (upiLane != null)
+                                {
+                                    upiLane.LayerAndLengths.Add(layer, length);
+                                }
+                            }
+                            else if (netName.Contains(usbNetIdentifier))
+                            {
+                                var usbLane = usbLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                if (usbLane != null)
+                                {
+                                    usbLane.LayerAndLengths.Add(layer, length);
                                 }
                             }
                         }
-
-                        // Continue parse and check for other diff pairs (clk, usb, etc)
-                        // else if ()
                     }
                 }
             }
-
-            //foreach (var item in pcieLanesInfo)
-            //{
-            //    Trace.WriteLine(item.NetName);
-
-            //    foreach (var layer in item.LayerAndLengths)
-            //    {
-            //        Trace.WriteLine("  --  " + layer);
-            //    }
-            //}
         }
 
 
@@ -171,21 +190,61 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                             // Check for PCIE lane diff pair and save it into list
                             if (netName.Contains(pcieNetIdentifier))
                             {
-                                var lane = pcieLanesInfo.First((obj => obj.NetName.Contains(netName)));
-                                if (lane != null)
+                                var pcieLane = pcieLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                if (pcieLane != null)
                                 {
-                                    lane.ViaCount = vias;
+                                    pcieLane.ViaCount = vias;
+                                }
+                            }
+
+                            // Continue parse and check for other diff pairs (clk, usb, etc)
+                            else if (netName.Contains(clockNetIdentifier))
+                            {
+                                var clockLane = clockLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                if (clockLane != null)
+                                {
+                                    clockLane.ViaCount = vias;
+                                }
+                            }
+                            else if (netName.Contains(upiNetIdentifier))
+                            {
+                                var upiLane = upiLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                if (upiLane != null)
+                                {
+                                    upiLane.ViaCount = vias;
+                                }
+                            }
+                            else if (netName.Contains(usbNetIdentifier))
+                            {
+                                var usbLane = usbLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                if (usbLane != null)
+                                {
+                                    usbLane.ViaCount = vias;
                                 }
                             }
                         }
-
-                        // Continue parse and check for other diff pairs (clk, usb, etc)
-                        // else if ()
                     }
                 }
             }
         }
 
+        public Dictionary<string, int> GetPinPairIndex(List<DiffPairLane> diffPairLanes)
+        {
+            Dictionary<string, int> result = new Dictionary<string, int>();
+            for (var i = 0; i < diffPairLanes.Count; i++)
+            {
+                if (diffPairLanes[i].PinPairEnd.Contains("C") && !diffPairLanes[i].PinPairEnd.Contains("U"))
+                {
+                    result.Add(diffPairLanes[i].PinPairEnd, i);
+                }
+                else if (diffPairLanes[i].PinPairStart.Contains("C") && !diffPairLanes[i].PinPairStart.Contains("U"))
+                {
+                    result.Add(diffPairLanes[i].PinPairStart, i);
+                }
+            }
+
+            return result;
+        }
 
         public List<DiffPairLane> GetPcieLaneInfo()
         {
@@ -205,6 +264,11 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
         public List<DiffPairLane> GetUsbLaneInfo()
         {
             return usbLanesInfo;
+        }
+
+        public HashSet<String> GetConnRefDes()
+        {
+            return connectorRefDes;
         }
     }
 }

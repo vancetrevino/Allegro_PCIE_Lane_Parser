@@ -15,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using Allegro_PCIE_Lane_Parser.Code_Files;
+using Allegro_PCIE_Lane_Parser.Class_Files;
 
 namespace Allegro_PCIE_Lane_Parser
 {
@@ -23,10 +24,23 @@ namespace Allegro_PCIE_Lane_Parser
     /// </summary>
     public partial class MainWindow : Window
     {
-        public string mlb_directory = "";
-        public string viaReportLocation = "";
-        public string etchLengthReportLocation = "";
-        public string pinPairReportLocation = "";
+        string mlb_directory = "";
+        string mlb_fileName = "";
+        string viaReportLocation = "";
+        string etchLengthReportLocation = "";
+        string pinPairReportLocation = "";
+
+        List<DiffPairLane> pcieLaneInfoList = new List<DiffPairLane>();
+        List<DiffPairLane> clockLanesInfoList = new List<DiffPairLane>();
+        List<DiffPairLane> upiLanesInfoList = new List<DiffPairLane>();
+        List<DiffPairLane> usbLanesInfoList = new List<DiffPairLane>();
+
+        HashSet<string> connectorRefDesHash = new HashSet<string>();
+
+        List<LaneGroup> aLaneGroupComplete = new List<LaneGroup>();
+        List<LaneGroup> bLaneGroupComplete = new List<LaneGroup>();
+
+        Dictionary<string, int> pciePinPairIndexes = new Dictionary<string, int>();
 
         public MainWindow()
         {
@@ -52,6 +66,7 @@ namespace Allegro_PCIE_Lane_Parser
             if ((result == true) && (openFileDialog.FileName.EndsWith(".brd")))
             {
                 mlb_directory = Path.GetDirectoryName(openFileDialog.FileName);
+                mlb_fileName = Path.GetFileName(openFileDialog.FileName);
                 mlb_boardFileLocation.Text = openFileDialog.FileName;
 
                 mlb_textBox.Text = String.Empty;
@@ -81,6 +96,7 @@ namespace Allegro_PCIE_Lane_Parser
 
         private void mlb_analyzeBoard_Click(object sender, RoutedEventArgs e)
         {
+            mlb_textBox.Text = "Now analyzing all of the generated Allegro Reports to parse the lanes. \n";
             // Parse the generated Allegro reports
             AllegroReportParse parser = new AllegroReportParse(viaReportLocation, etchLengthReportLocation, pinPairReportLocation);
 
@@ -88,26 +104,46 @@ namespace Allegro_PCIE_Lane_Parser
             parser.ParseLengthByLayerReport();
             parser.ParseViaReport();
 
-            var pcieLaneInfo = parser.GetPcieLaneInfo();
-            var clockLanesInfo = parser.GetClockLaneInfo();
-            var upiLanesInfo = parser.GetUpiLaneInfo();
-            var usbLanesInfo = parser.GetUsbLaneInfo();
+            pcieLaneInfoList = parser.GetPcieLaneInfo();
+            clockLanesInfoList = parser.GetClockLaneInfo();
+            upiLanesInfoList = parser.GetUpiLaneInfo();
+            usbLanesInfoList = parser.GetUsbLaneInfo();
+            connectorRefDesHash = parser.GetConnRefDes();
+            pciePinPairIndexes = parser.GetPinPairIndex(pcieLaneInfoList);
 
+            foreach (var x in clockLanesInfoList)
+            {
+                foreach (var y in x.LayerAndLengths)
+                {
+                    Trace.WriteLine(x.NetName + " -- " + x.FullPinPair + " -- " + x.ViaCount + " -- " + y.Key + " - " + y.Value);
+                }
+            }
 
-
+            mlb_textBox.Text += "Finished parsing all reports. Please click 'Start/Run' to continue the program. \n";
         }
 
         private void mlb_runProgram_Click(object sender, RoutedEventArgs e)
         {
             // Will need to add a class/function to parse allegro reports to get total lane and connector usage
             mlb_textBox.Text = String.Empty;
+            mlb_textBox.Text = "Now beginning to run the program. \n";
+            mlb_textBox.Text += "Exporting final lane data to a CSV file. \n";
 
-            // Allegro report check and generation 
-            //BrdReportGen mlbReports = new BrdReportGen(mlb_directory, @"C:\Cadence\SPB_17.2\tools\bin");
-            
+            // Merge all the data parsed from the Allegro reports 
+            MergeLaneInfo merge = new MergeLaneInfo(connectorRefDesHash);
 
-            // Parse the generated Allegro reports
+            merge.MergePcieLanes(pcieLaneInfoList, pciePinPairIndexes);
 
+            aLaneGroupComplete = merge.GetASideGroup();
+            bLaneGroupComplete = merge.GetBSideGroup();
+
+
+            // Begin printing out to a CSV file.
+            PrintToCSV csvPrint = new PrintToCSV(mlb_directory, mlb_fileName, aLaneGroupComplete, bLaneGroupComplete);
+            csvPrint.LaneGroupsOrdering();
+            csvPrint.WriteToCSV();
+
+            // mlb_directory
         }
     }
 }

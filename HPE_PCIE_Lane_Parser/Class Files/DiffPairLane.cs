@@ -46,7 +46,7 @@ namespace Allegro_PCIE_Lane_Parser.Class_Files
             {
                 return firstRefDes;
             }
-            else if (firstRefDes.Contains('J'))
+            else if (secondRefDes.Contains('J'))
             {
                 return secondRefDes;
             }

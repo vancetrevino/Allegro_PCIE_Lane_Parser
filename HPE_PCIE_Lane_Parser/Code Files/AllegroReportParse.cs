@@ -83,7 +83,11 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                             else if (netName.Contains(clockNetIdentifier))
                             {
                                 DiffPairLane clockDiffPair = new DiffPairLane(netName, pinPair, totalLength);
-                                clockLanesInfo.Add(clockDiffPair);
+                                var clockLane = clockLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                if (clockLane == null)
+                                {
+                                    clockLanesInfo.Add(clockDiffPair);
+                                }
                             }
                             else if (netName.Contains(upiNetIdentifier))
                             {
@@ -93,7 +97,11 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                             else if (netName.Contains(usbNetIdentifier))
                             {
                                 DiffPairLane usbDiffPair = new DiffPairLane(netName, pinPair, totalLength);
-                                usbLanesInfo.Add(usbDiffPair);
+                                var usbLane = usbLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                if (usbLane == null)
+                                {
+                                    usbLanesInfo.Add(usbDiffPair);
+                                }
                             }
                         }
                     }

@@ -18,6 +18,8 @@ namespace Allegro_PCIE_Lane_Parser.Class_Files
         public string SecondViaCount { get; set; }
         public string TotalViaCount { get; set; }
 
+        // String used to order by Net Name
+        public string NetToOrderBy { get; set; }
 
         public LaneGroup(string groupName, string firstNet, Dictionary<string, string> firstLayerAndLengths, string firstViaCount, string pinPair)
         {
@@ -31,6 +33,12 @@ namespace Allegro_PCIE_Lane_Parser.Class_Files
             SecondLayerAndLengths = new Dictionary<string, string>();
             SecondViaCount = "0";
             TotalViaCount = "0";
+
+            NetToOrderBy = "";
+        }
+
+        public LaneGroup()
+        {
         }
 
         public void CalcTotalViaCount()

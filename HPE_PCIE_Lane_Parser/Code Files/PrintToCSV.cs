@@ -12,21 +12,19 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
     {
         private string mlb_directory { get; set; }
         private string mlb_file { get; set; }
-        private List<LaneGroup> aLaneGroupComplete { get; set; }
-        private List<LaneGroup> bLaneGroupComplete { get; set; }
 
-        public PrintToCSV (string mlb_directory, string mlb_file, List<LaneGroup> aLaneGroupComplete, List<LaneGroup> bLaneGroupComplete)
+        public PrintToCSV (string mlb_directory, string mlb_file)
         {
             this.mlb_directory = mlb_directory;
             this.mlb_file = mlb_file;
-            this.aLaneGroupComplete = aLaneGroupComplete;
-            this.bLaneGroupComplete = bLaneGroupComplete;
         }
 
         private string outputFile = @"\__OUTPUT__ParsedLanes.csv";
         private List<List<string>> outputList = new List<List<string>>();
 
-        public void LaneGroupsOrdering()
+
+        // Method to begin ordering each lane grouping
+        public void LaneGroupsOrdering(List<LaneGroup> aLaneGroupComplete, List<LaneGroup>? bLaneGroupComplete)
         {
             string oldRefDes = "";
 
@@ -36,12 +34,11 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 List<string> headers = new List<string>();
 
                 var lanesA = aLaneGroupComplete[i];
-                var lanesB = bLaneGroupComplete[i];
                 
                 // Do a series of check to determine what needs to be written to the CSV file
                 if (!string.IsNullOrEmpty(lanesA.GroupName))
                 {
-                    headers.Add("\n Ref Des,");
+                    headers.Add("\nRef Des,");
                     tempList.Add(lanesA.GroupName + ",");
                 }
 
@@ -52,9 +49,13 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 headers.Add(",");
                 tempList.Add(",");
 
-                ParseLaneGroups(tempList, headers, lanesB.SecondNet, lanesB.SecondLayerAndLengths);
-                ParseLaneGroups(tempList, headers, lanesB.FirstNet, lanesB.FirstLayerAndLengths);
-                ParseTotalViaOnLane(tempList, headers, lanesB.TotalViaCount);
+                if (bLaneGroupComplete != null)
+                {
+                    var lanesB = bLaneGroupComplete[i];
+                    ParseLaneGroups(tempList, headers, lanesB.SecondNet, lanesB.SecondLayerAndLengths);
+                    ParseLaneGroups(tempList, headers, lanesB.FirstNet, lanesB.FirstLayerAndLengths);
+                    ParseTotalViaOnLane(tempList, headers, lanesB.TotalViaCount);
+                }
 
                 headers.Add("\n");
                 tempList.Add("\n");
@@ -137,7 +138,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
         public void ParseLayersInDict(List<string> tempList, List<string> headers, Dictionary<string, string> layerLengthDict, string layerName)
         {
-            if (layerLengthDict.ContainsKey(layerName) || layerLengthDict.ContainsKey(layerName + "_SIG"))
+            if (layerLengthDict.ContainsKey(layerName) || layerLengthDict.ContainsKey(layerName + "_SIG") || layerLengthDict.ContainsKey("SIG_" + layerName))
             {
                 string value = "";
                 headers.Add(layerName + " Length (MILS),");
@@ -148,6 +149,14 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 else if (layerLengthDict.TryGetValue(layerName + "_SIG", out value))
                 {
                     tempList.Add(value + ",");
+                }
+                else if (layerLengthDict.TryGetValue("SIG_" + layerName, out value))
+                {
+                    tempList.Add(value + ",");
+                }
+                else
+                {
+                    tempList.Add("0,");
                 }
             }
         }

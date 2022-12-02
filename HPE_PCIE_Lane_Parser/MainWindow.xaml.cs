@@ -39,6 +39,9 @@ namespace Allegro_PCIE_Lane_Parser
 
         List<LaneGroup> aLaneGroupComplete = new List<LaneGroup>();
         List<LaneGroup> bLaneGroupComplete = new List<LaneGroup>();
+        List<LaneGroup> upiRxGroupComplete = new List<LaneGroup>();
+        List<LaneGroup> upiTxGroupComplete = new List<LaneGroup>();
+        List<LaneGroup> otherLaneGroupComplete = new List<LaneGroup>();
 
         Dictionary<string, int> pciePinPairIndexes = new Dictionary<string, int>();
 
@@ -111,15 +114,11 @@ namespace Allegro_PCIE_Lane_Parser
             connectorRefDesHash = parser.GetConnRefDes();
             pciePinPairIndexes = parser.GetPinPairIndex(pcieLaneInfoList);
 
-            foreach (var x in clockLanesInfoList)
-            {
-                foreach (var y in x.LayerAndLengths)
-                {
-                    Trace.WriteLine(x.NetName + " -- " + x.FullPinPair + " -- " + x.ViaCount + " -- " + y.Key + " - " + y.Value);
-                }
-            }
-
+            mlb_textBox.Text += "************************************************************************ \n";
             mlb_textBox.Text += "Finished parsing all reports. Please click 'Start/Run' to continue the program. \n";
+            mlb_textBox.Text += "************************************************************************ \n";
+
+            mlb_runProgram.IsEnabled = true;
         }
 
         private void mlb_runProgram_Click(object sender, RoutedEventArgs e)
@@ -133,17 +132,38 @@ namespace Allegro_PCIE_Lane_Parser
             MergeLaneInfo merge = new MergeLaneInfo(connectorRefDesHash);
 
             merge.MergePcieLanes(pcieLaneInfoList, pciePinPairIndexes);
+            merge.MergeOtherLanes("UPI", upiLanesInfoList);
+            merge.MergeOtherLanes("CLK", clockLanesInfoList);
+            merge.MergeOtherLanes("USB", usbLanesInfoList);
 
             aLaneGroupComplete = merge.GetASideGroup();
             bLaneGroupComplete = merge.GetBSideGroup();
+            upiRxGroupComplete = merge.GetUpiRxGroup();
+            upiTxGroupComplete = merge.GetUpiTxGroup();
+            otherLaneGroupComplete = merge.GetOtherLaneGroup();
+
+            merge.CheckGroupsForMissingLayers(aLaneGroupComplete);
+            merge.CheckGroupsForMissingLayers(bLaneGroupComplete);
+            merge.CheckGroupsForMissingLayers(upiRxGroupComplete);
+            merge.CheckGroupsForMissingLayers(upiTxGroupComplete);
+            merge.CheckGroupsForMissingLayers(otherLaneGroupComplete);
+
+            //foreach (var i in otherLaneGroupComplete)
+            //{
+            //    Trace.WriteLine(i.FirstNet);
+            //}
 
 
             // Begin printing out to a CSV file.
-            PrintToCSV csvPrint = new PrintToCSV(mlb_directory, mlb_fileName, aLaneGroupComplete, bLaneGroupComplete);
-            csvPrint.LaneGroupsOrdering();
+            PrintToCSV csvPrint = new PrintToCSV(mlb_directory, mlb_fileName);
+            csvPrint.LaneGroupsOrdering(aLaneGroupComplete, bLaneGroupComplete);
+            csvPrint.LaneGroupsOrdering(upiRxGroupComplete, upiTxGroupComplete);
+            csvPrint.LaneGroupsOrdering(otherLaneGroupComplete, null);
             csvPrint.WriteToCSV();
 
-            // mlb_directory
+            mlb_textBox.Text += "************************************************************************ \n";
+            mlb_textBox.Text += "Program is now complete. Open the '__OUTPUT__ParsedLanes.csv' file \n";
+            mlb_textBox.Text += "************************************************************************ \n";
         }
     }
 }

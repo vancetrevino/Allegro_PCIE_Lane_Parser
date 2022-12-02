@@ -92,7 +92,6 @@ namespace Allegro_PCIE_Lane_Parser
             {
                 mw.mlb_textBoxValue += "All Allegro necessary reports have been found. You can click on either 'Analyze Board File' or 'Start/Run' to move to the next step. \n";
                 mw.mlb_analyzeBoard.IsEnabled = true;
-                mw.mlb_runProgram.IsEnabled = true;
             }
             else
             {

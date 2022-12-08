@@ -90,6 +90,17 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                                 bSideLanesCpu1.Add(completeLaneGroup);
                             }
                         }
+                        else
+                        {
+                            if ((connPinPair.Contains(".B_A") || connPinPair.Contains(".A")) && !(connPinPair.Contains(".A_B")))
+                            {
+                                aSideLanesCpu0.Add(completeLaneGroup);
+                            }
+                            else if ((connPinPair.Contains(".A_B") || connPinPair.Contains(".B")) && !(connPinPair.Contains(".B_A")))
+                            {
+                                bSideLanesCpu0.Add(completeLaneGroup);
+                            }
+                        }
                     }
                 }
             }
@@ -178,21 +189,21 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
         // Method to check if the other pin pair of the lane is a capacitor or not. If so, then return it's other capacitor pin
         public string? checkPinForCap(DiffPairLane diffPair, string pinToCheck)
         {
-            if (pinToCheck.Contains("C"))
+            if (pinToCheck.Contains("C") || diffPair.NetName.Contains("_C_"))
             {
                 // Pin pair notates a capacitor, so find the end pin number of the cap and return the opposite number
                 string pin = pinToCheck.Substring(0, pinToCheck.Length - 1);
-                if (pinToCheck.EndsWith("1"))
+                if (pinToCheck.EndsWith(".1"))
                 {
                     return pin + "2";
                 }
-                else if (pinToCheck.EndsWith("2"))
+                else if (pinToCheck.EndsWith(".2"))
                 {
                     return pin + "1";
                 }
             }
             return null;
-        }
+        }  
 
         public void CheckGroupsForMissingLayers(List<LaneGroup> laneGroup)
         {

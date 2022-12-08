@@ -19,14 +19,14 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
             this.mlb_file = mlb_file;
         }
 
-        private string outputFile = @"\__OUTPUT__ParsedLanes.csv";
+        //private string outputFile = @"\__OUTPUT__ParsedLanes_" + mlb_file +  ".csv";
         private List<List<string>> outputList = new List<List<string>>();
 
 
         // Method to begin ordering each lane grouping
         public void LaneGroupsOrdering(List<LaneGroup> aLaneGroupComplete, List<LaneGroup>? bLaneGroupComplete)
         {
-            string oldRefDes = "";
+            string previousRefDes = "";
 
             for (var i = 0; i < aLaneGroupComplete.Count; i++)
             {
@@ -60,9 +60,9 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 headers.Add("\n");
                 tempList.Add("\n");
 
-                if (oldRefDes != lanesA.GroupName)
+                if (previousRefDes != lanesA.GroupName)
                 {
-                    oldRefDes = lanesA.GroupName;
+                    previousRefDes = lanesA.GroupName;
                     outputList.Add(headers);
                 }
 
@@ -72,6 +72,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
         public void WriteToCSV()
         {
+            string outputFile = @"\__OUTPUT__ParsedLanes_" + mlb_file + ".csv";
             using (var writer = new StreamWriter(mlb_directory + outputFile))
             {
                 // Write the board file name to begin
@@ -94,6 +95,10 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
             {
                 headers.Add("Net Name,");
                 tempList.Add(laneNet + ",");
+            }
+            else if (laneNet == "" && laneLayerAndLengths.Count > 0)
+            {
+                tempList.Add(" " + ",");
             }
 
             if (laneLayerAndLengths.Count > 0)

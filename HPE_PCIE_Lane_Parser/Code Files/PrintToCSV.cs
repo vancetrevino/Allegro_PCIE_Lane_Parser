@@ -49,7 +49,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 headers.Add(",");
                 tempList.Add(",");
 
-                if (bLaneGroupComplete != null)
+                if (bLaneGroupComplete != null && i < bLaneGroupComplete.Count)
                 {
                     var lanesB = bLaneGroupComplete[i];
                     ParseLaneGroups(tempList, headers, lanesB.SecondNet, lanesB.SecondLayerAndLengths);

@@ -58,6 +58,9 @@ namespace Allegro_PCIE_Lane_Parser
 
         private void mlb_btnOpenFile_Click(object sender, RoutedEventArgs e)
         {
+            mlb_analyzeBoard.IsEnabled = false;
+            mlb_runProgram.IsEnabled = false;
+
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "BRD files (*.brd)|*.brd|All files (*.*)|*.*";
 

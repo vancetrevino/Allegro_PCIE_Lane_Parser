@@ -69,7 +69,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                             if (netName.Contains(pcieNetIdentifier))
                             {
                                 DiffPairLane pcieDiffPair = new DiffPairLane(netName, pinPair, totalLength);
-                                string pcieRefDes = pcieDiffPair.FindNewConnectors();
+                                string pcieRefDes = pcieDiffPair.FindNewConnectors(connectorRefDes);
 
                                 if (pcieRefDes != null)
                                 {

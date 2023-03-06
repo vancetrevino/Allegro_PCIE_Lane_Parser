@@ -69,18 +69,6 @@
                         <Button Name="mlb_settings" Click="mlb_settings_Click"  Grid.Column="1" Grid.Row="2" Padding="0,3,0,3" VerticalAlignment="Bottom">Settings</Button>
                     </Grid>
                 </TabItem>
-
-
-
-                <TabItem>
-                    <TabItem.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Risers" Foreground="Red" />
-                        </StackPanel>
-                    </TabItem.Header>
-
-                    <Label Content="Work in progress..." />
-                </TabItem>
             </TabControl>
         </Grid>
     </Grid>

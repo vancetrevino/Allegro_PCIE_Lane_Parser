@@ -59,7 +59,7 @@ namespace Allegro_PCIE_Lane_Parser
         private void mlb_btnOpenFile_Click(object sender, RoutedEventArgs e)
         {
             mlb_analyzeBoard.IsEnabled = false;
-            mlb_runProgram.IsEnabled = false;
+            //mlb_runProgram.IsEnabled = false;
 
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "BRD files (*.brd)|*.brd|All files (*.*)|*.*";
@@ -77,6 +77,7 @@ namespace Allegro_PCIE_Lane_Parser
 
                 mlb_textBox.Text = String.Empty;
                 mlb_textBox.Text = "A valid board layout file has been detected. \n";
+                mlb_textBox.Text += "------------------------------------------------------------------------ \n\n";
 
                 // Allegro report check and generation 
                 BrdReportGen mlbReports = new BrdReportGen(mlb_directory, @"C:\Cadence\SPB_17.2\tools\bin");
@@ -91,7 +92,7 @@ namespace Allegro_PCIE_Lane_Parser
     }
             else
             {
-                mlb_boardFileLocation.Text = "Invalid board file. Please input a valid board file with the extension '.brd'";
+                mlb_boardFileLocation.Text = "Invalid board file. Please input a valid board file with the extension '.brd'\n";
             }
         }
 
@@ -102,7 +103,8 @@ namespace Allegro_PCIE_Lane_Parser
 
         private void mlb_analyzeBoard_Click(object sender, RoutedEventArgs e)
         {
-            mlb_textBox.Text = "Now analyzing all of the generated Allegro Reports to parse the lanes. \n";
+            mlb_textBox.Text += "------------------------------------------------------------------------ \n\n";
+            mlb_textBox.Text += "Now analyzing all of the generated Allegro Reports to parse the lanes. \n";
             // Parse the generated Allegro reports
             AllegroReportParse parser = new AllegroReportParse(viaReportLocation, etchLengthReportLocation, pinPairReportLocation);
 
@@ -117,18 +119,12 @@ namespace Allegro_PCIE_Lane_Parser
             connectorRefDesHash = parser.GetConnRefDes();
             pciePinPairIndexes = parser.GetPinPairIndex(pcieLaneInfoList);
 
-            mlb_textBox.Text += "************************************************************************ \n";
             mlb_textBox.Text += "Finished parsing all reports. Please click 'Start/Run' to continue the program. \n";
-            mlb_textBox.Text += "************************************************************************ \n";
+            mlb_textBox.Text += "------------------------------------------------------------------------ \n\n";
 
-            mlb_runProgram.IsEnabled = true;
-        }
+            //mlb_runProgram.IsEnabled = true;
 
-        private void mlb_runProgram_Click(object sender, RoutedEventArgs e)
-        {
-            // Will need to add a class/function to parse allegro reports to get total lane and connector usage
-            mlb_textBox.Text = String.Empty;
-            mlb_textBox.Text = "Now beginning to run the program. \n";
+            mlb_textBox.Text += "Now beginning to run the program. \n";
             mlb_textBox.Text += "Exporting final lane data to a CSV file. \n";
 
             // Merge all the data parsed from the Allegro reports 
@@ -151,13 +147,6 @@ namespace Allegro_PCIE_Lane_Parser
             merge.CheckGroupsForMissingLayers(upiTxGroupComplete);
             merge.CheckGroupsForMissingLayers(otherLaneGroupComplete);
 
-            //foreach (var i in otherLaneGroupComplete)
-            //{
-            //    Trace.WriteLine(i.FirstNet);
-            //}
-
-
-            // Begin printing out to a CSV file.
             PrintToCSV csvPrint = new PrintToCSV(mlb_directory, mlb_fileName);
             csvPrint.LaneGroupsOrdering(aLaneGroupComplete, bLaneGroupComplete);
             csvPrint.LaneGroupsOrdering(upiRxGroupComplete, upiTxGroupComplete);

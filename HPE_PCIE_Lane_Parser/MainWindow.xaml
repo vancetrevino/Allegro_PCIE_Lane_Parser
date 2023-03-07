@@ -49,22 +49,21 @@
                                     <Run Text="  1. Click the &quot;Open File&quot; button and navigate to the Allegro layout board file that you would like to parse PCIE lanes for."/><LineBreak/>
                                     <Run Text="  2. If a valid board file with the extension (.brd) is detected, the tool will begin to check if the necessary Allegro reports are in the corresponding folder. "/><LineBreak/>
                                     <Run Text="  3. If one or more Allegro reports are missing, then the tool will begin generating the reports."/><LineBreak/>
-                                    <Run Text="  4. Once all reports have been generated, the &quot;Analyze Board File&quot; button will become accessible."/><LineBreak/>
-                                    <Run Text="  5. Click the &quot;Analyze Board File&quot; button and the tool will begin to read and parse each report."/><LineBreak/>
-                                    <Run Text="  6. Once the analysis is complete, the &quot;Start/Run&quot; button will become accessible."/><LineBreak/>
-                                    <Run Text="  7. Click the &quot;Start/Run&quot; button and the tool will output a (.csv) file."/><LineBreak/>
-                                    <Run Text="  8. The (.csv) file will be named &quot;__OUTPUT__ParsedLanes_*board_file_name*.csv&quot;."/><LineBreak/><LineBreak/>
+                                    <Run Text="  4. Once all reports have been generated, the &quot;Analyze Board &amp; Start&quot; button will become accessible."/><LineBreak/>
+                                    <Run Text="  5. Click the &quot;Analyze Board &amp; Start&quot; button and the tool will begin to read and parse each report."/><LineBreak/>
+                                    <Run Text="  6. Once the analysis is complete, the the tool will automatically output a (.csv) file in the same directory as your board file."/><LineBreak/>
+                                    <Run Text="  7. The (.csv) file will be named &quot;__OUTPUT__ParsedLanes_*board_file_name*.csv&quot;."/><LineBreak/><LineBreak/>
                                     <Run Text="NOTES... "/><LineBreak/>
                                     <Run Text="  - You must have the Cadence SPB Suite (v17.2 or later) installed."/><LineBreak/>
                                     <Run Text="  - The tool generates each report by using the folder &quot;C:\Cadence\SPB_17.2\tools\bin&quot;."/><LineBreak/>
                                     <Run Text="  - If you installed Cadence/Allegro in a different location you may need to change the settings in this tool."/><LineBreak/>
+                                    <Run Text="  - You MUST have all the lanes completely connected (CPU to endpoint) in your board file."/><LineBreak/>
                                 </TextBlock>
                             </ScrollViewer>
                         </Border>
 
                         <DockPanel Grid.Column="1" Grid.Row="2" VerticalAlignment="Center">
-                            <Button x:Name="mlb_analyzeBoard" Click="mlb_analyzeBoard_Click" Padding="0,3,0,3" VerticalAlignment="Center" IsEnabled="False" Content="Analyze Board File" HorizontalAlignment="Stretch" DockPanel.Dock="Top" Margin="0,0,0,10"/>
-                            <Button Name="mlb_runProgram" Click="mlb_runProgram_Click" Padding="0,3,0,3" VerticalAlignment="Center" IsEnabled="False" Content="Start/Run" HorizontalAlignment="Stretch" DockPanel.Dock="Bottom" />
+                            <Button x:Name="mlb_analyzeBoard" Click="mlb_analyzeBoard_Click" Padding="0,3,0,3" VerticalAlignment="Center" IsEnabled="False" Content="Analyze Board &amp; Start" HorizontalAlignment="Stretch" DockPanel.Dock="Top"/>
                         </DockPanel>
                         <Button Name="mlb_settings" Click="mlb_settings_Click"  Grid.Column="1" Grid.Row="2" Padding="0,3,0,3" VerticalAlignment="Bottom">Settings</Button>
                     </Grid>

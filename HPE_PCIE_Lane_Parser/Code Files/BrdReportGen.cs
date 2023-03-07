@@ -90,12 +90,12 @@ namespace Allegro_PCIE_Lane_Parser
             // If one or more files is missing, begin generating files. Otherwise move on to next step. 
             if (pinPairFlag && viaFlag && etchLengthFlag)
             {
-                mw.mlb_textBoxValue += "All Allegro necessary reports have been found. You can click on either 'Analyze Board File' or 'Start/Run' to move to the next step. \n";
+                mw.mlb_textBoxValue += "**** All necessary reports have been found. You can click on 'Analyze Board & Start' to move to the next step. ****\n";
                 mw.mlb_analyzeBoard.IsEnabled = true;
             }
             else
             {
-                mw.mlb_textBoxValue += "-------------------- \n";
+                mw.mlb_textBoxValue += "------------------------------------------------------------------------ \n";
                 mw.mlb_textBoxValue += "One or more files are missing. Now beginning to generate all reports. \n";
                 //mw.mlb_textBoxValue += "One or more files are missing. Click 'Start/Run' to generate all reports. \n";
             }
@@ -116,7 +116,7 @@ namespace Allegro_PCIE_Lane_Parser
                 $@"{reportCmd} -v vialist_net ""{brdFile}"" ""{viaListReportLocation}""",
             };
 
-            mw.mlb_textBoxValue += "-------------------- \n";
+            mw.mlb_textBoxValue += "------------------------------------------------------------------------ \n";
             mw.mlb_textBoxValue += "Now generating the via list report. \n";
             mw.mlb_textBoxValue += "Now generating the etch length report. \n";
             mw.mlb_textBoxValue += "Now generating the pin pair report -- This generation may take a while. \n";
@@ -135,7 +135,7 @@ namespace Allegro_PCIE_Lane_Parser
                 mw.mlb_textBoxValue += "  --- Generating \n";
             }
 
-            mw.mlb_textBoxValue += "*** All reports have been generated. Click on 'Analyze Board File' to move to the next step. \n";
+            mw.mlb_textBoxValue += "**** All necessary reports have been generated. Click on 'Analyze Board & Start' to move to the next step. ****\n";
             mw.mlb_analyzeBoard.IsEnabled = true;
         }
 

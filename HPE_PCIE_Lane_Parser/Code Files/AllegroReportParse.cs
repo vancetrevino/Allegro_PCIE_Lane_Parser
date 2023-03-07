@@ -1,6 +1,10 @@
 ﻿
 using Allegro_PCIE_Lane_Parser.Class_Files;
-
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Windows;
 
 namespace Allegro_PCIE_Lane_Parser.Code_Files
 {

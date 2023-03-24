@@ -21,6 +21,23 @@ namespace Allegro_PCIE_Lane_Parser.Class_Files
         // String used to order by Net Name
         public string NetToOrderBy { get; set; }
 
+        public LaneGroup(string groupName, string firstNet, Dictionary<string, string> firstLayerAndLengths, string firstViaCount, 
+                        string pinPair, string secondNet, Dictionary<string, string> secondLayerAndLengths, string secondViaCount)
+        {
+            GroupName = groupName;
+            FirstNet = firstNet;
+            FirstLayerAndLengths = firstLayerAndLengths;
+            FirstViaCount = firstViaCount;
+            PinPair = pinPair;
+
+            SecondNet = secondNet;
+            SecondLayerAndLengths = secondLayerAndLengths;
+            SecondViaCount = secondViaCount;
+            TotalViaCount = "0";
+
+            NetToOrderBy = "";
+        }
+
         public LaneGroup(string groupName, string firstNet, Dictionary<string, string> firstLayerAndLengths, string firstViaCount, string pinPair)
         {
             GroupName = groupName;
@@ -39,6 +56,18 @@ namespace Allegro_PCIE_Lane_Parser.Class_Files
 
         public LaneGroup()
         {
+            GroupName = ""; ;
+            FirstNet = ""; ;
+            FirstLayerAndLengths = new Dictionary<string, string>();
+            FirstViaCount = ""; ;
+            PinPair = ""; ;
+
+            SecondNet = ""; ;
+            SecondLayerAndLengths = new Dictionary<string, string>();
+            SecondViaCount = "";
+            TotalViaCount = "";
+
+            NetToOrderBy = "";
         }
 
         public void CalcTotalViaCount()

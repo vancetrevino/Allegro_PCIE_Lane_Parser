@@ -148,9 +148,9 @@ namespace Allegro_PCIE_Lane_Parser
             merge.CheckGroupsForMissingLayers(otherLaneGroupComplete);
 
             PrintToCSV csvPrint = new PrintToCSV(mlb_directory, mlb_fileName);
-            csvPrint.LaneGroupsOrdering(aLaneGroupComplete, bLaneGroupComplete);
-            csvPrint.LaneGroupsOrdering(upiRxGroupComplete, upiTxGroupComplete);
-            csvPrint.LaneGroupsOrdering(otherLaneGroupComplete, null);
+            csvPrint.DiffPairLaneGroupsOrdering(aLaneGroupComplete, bLaneGroupComplete);
+            csvPrint.DiffPairLaneGroupsOrdering(upiRxGroupComplete, upiTxGroupComplete);
+            csvPrint.OtherLaneGroupsOrdering(otherLaneGroupComplete);
             csvPrint.WriteToCSV();
 
             mlb_textBox.Text += "************************************************************************ \n";

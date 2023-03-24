@@ -19,91 +19,180 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
             this.mlb_file = mlb_file;
         }
 
-        //private string outputFile = @"\__OUTPUT__ParsedLanes_" + mlb_file +  ".csv";
         private List<List<string>> outputList = new List<List<string>>();
 
+        public void BeginHeaderAndLists(List<string> tempList, List<string> headers, string connectorRefDesGroup)
+        {
+            // Start off CSV file with a header for each column and the connector REF DES to show the grouping. 
+            if (!string.IsNullOrEmpty(connectorRefDesGroup))
+            {
+                headers.Add("\nRef Des,");
+                tempList.Add(connectorRefDesGroup + ",");
+            }
+        }
+
+        public void ChangeHeaderGroup(List<string> headers, string connectorRefDesGroup, ref string previousRefDes)
+        {
+            if (previousRefDes != connectorRefDesGroup)
+            {
+                previousRefDes = connectorRefDesGroup;
+                outputList.Add(headers);
+            }
+        }
 
         // Method to begin ordering each lane grouping
-        public void LaneGroupsOrdering(List<LaneGroup> aLaneGroupComplete, List<LaneGroup>? bLaneGroupComplete)
+        public void OtherLaneGroupsOrdering(List<LaneGroup> laneGroupComplete)
         {
             string previousRefDes = "";
+            int maxLaneCount = laneGroupComplete.Count;
 
-            for (var i = 0; i < aLaneGroupComplete.Count; i++)
+            for (var primaryIndex = 0; primaryIndex < maxLaneCount; primaryIndex++)
             {
                 List<string> tempList = new List<string>();
                 List<string> headers = new List<string>();
 
-                var lanesA = aLaneGroupComplete[i];
-                
-                // Do a series of check to determine what needs to be written to the CSV file
-                if (!string.IsNullOrEmpty(lanesA.GroupName))
-                {
-                    headers.Add("\nRef Des,");
-                    tempList.Add(lanesA.GroupName + ",");
-                }
+                string connectorRefDesGroup = laneGroupComplete[primaryIndex].GroupName;
 
-                ParseLaneGroups(tempList, headers, lanesA.SecondNet, lanesA.SecondLayerAndLengths);
-                ParseLaneGroups(tempList, headers, lanesA.FirstNet, lanesA.FirstLayerAndLengths);
-                ParseTotalViaOnLane(tempList, headers, lanesA.TotalViaCount);
-                
+                LaneGroup laneGroup = laneGroupComplete[primaryIndex];
+
+                BeginHeaderAndLists(tempList, headers, connectorRefDesGroup);
+
+                ParseLaneGroups(tempList, headers, laneGroup.SecondNet, laneGroup.SecondLayerAndLengths);
+                ParseLaneGroups(tempList, headers, laneGroup.FirstNet, laneGroup.FirstLayerAndLengths);
+                ParseTotalViaOnLane(tempList, headers, laneGroup.TotalViaCount);
+
                 headers.Add(",");
                 tempList.Add(",");
-
-                if (bLaneGroupComplete != null && i < bLaneGroupComplete.Count)
-                {
-                    var lanesB = bLaneGroupComplete[i];
-                    ParseLaneGroups(tempList, headers, lanesB.SecondNet, lanesB.SecondLayerAndLengths);
-                    ParseLaneGroups(tempList, headers, lanesB.FirstNet, lanesB.FirstLayerAndLengths);
-                    ParseTotalViaOnLane(tempList, headers, lanesB.TotalViaCount);
-                }
 
                 headers.Add("\n");
                 tempList.Add("\n");
 
-                if (previousRefDes != lanesA.GroupName)
-                {
-                    previousRefDes = lanesA.GroupName;
-                    outputList.Add(headers);
-                }
 
+                ChangeHeaderGroup(headers, connectorRefDesGroup, ref previousRefDes);
                 outputList.Add(tempList);
             }
         }
 
-        public void WriteToCSV()
+        // Method to begin ordering each lane grouping
+        public void DiffPairLaneGroupsOrdering(List<LaneGroup> aLaneGroupComplete, List<LaneGroup> bLaneGroupComplete)
         {
-            string outputFile = @"\__OUTPUT__ParsedLanes_" + mlb_file + ".csv";
-            using (var writer = new StreamWriter(mlb_directory + outputFile))
-            {
-                // Write the board file name to begin
-                string boardFileNameHeader = "Board File:, " + mlb_file + ",";
-                writer.Write(boardFileNameHeader);
+            string previousRefDes = "";
+            int secondaryIndex = 0;
+            int maxLaneCount = Math.Max(aLaneGroupComplete.Count, bLaneGroupComplete.Count);
 
-                foreach (var row in outputList)
+            for (var primaryIndex = 0; primaryIndex < maxLaneCount; primaryIndex++)
+            {
+                List<string> tempList = new List<string>();
+                List<string> headers = new List<string>();
+
+                LaneGroup laneA = new LaneGroup();
+                LaneGroup laneB = new LaneGroup();
+
+                string connectorRefDesGroup = "";
+                string fewerLanesFlag = "LANE_B";
+
+                // Verify that which List of lanes contains a larger count
+                // This is to prevent the edge case if certain lanes aren't connected to their endpoint. 
+                // Using primary and secondary indexes to move through each list.
+                // Secondary index will only increase if all lane checks pass.
+                if (aLaneGroupComplete.Count >= bLaneGroupComplete.Count)
                 {
-                    foreach (var item in row)
-                    {
-                        writer.Write(item);
-                    }
+                    laneA = aLaneGroupComplete[primaryIndex];
+                    laneB = bLaneGroupComplete[secondaryIndex];
+                    connectorRefDesGroup = laneA.GroupName;
+                    fewerLanesFlag = "LANE_B";
                 }
+                else
+                {
+                    laneA = bLaneGroupComplete[secondaryIndex];
+                    laneB = aLaneGroupComplete[primaryIndex];
+                    connectorRefDesGroup = laneB.GroupName;
+                    fewerLanesFlag = "LANE_A";
+                }
+
+                BeginHeaderAndLists(tempList, headers, connectorRefDesGroup);
+
+                // Check to see if the A side and B side lanes match each other: net name and port-number wise.
+                // AKA: Both are referring to the same lane and port number. --> P5E2A<0>_TX and P5E2A<0>_RX
+                CheckLaneEquality(tempList, headers, laneA, laneB, fewerLanesFlag, ref secondaryIndex);
+
+                ChangeHeaderGroup(headers, connectorRefDesGroup, ref previousRefDes);
+                outputList.Add(tempList);
             }
         }
 
-        public void ParseLaneGroups(List<string> tempList, List<string> headers, string laneNet, Dictionary<string, string> laneLayerAndLengths)
+        public void CheckLaneEquality(List<string> tempList, List<string> headers, LaneGroup laneA, LaneGroup laneB, string fewerLanesFlag, ref int secondaryIndex)
+        {
+            // Split each lane net name string by the TX and RX nomenclature, and use the first part of the string in the comparison. 
+            string[] laneSeparators = new String[] { "RX", "TX", "RT", "TR" };
+            string laneANetNameIdentifier = laneA.FirstNet.Split(laneSeparators, StringSplitOptions.RemoveEmptyEntries).First();
+            string laneBNetNameIdentifier = laneB.FirstNet.Split(laneSeparators, StringSplitOptions.RemoveEmptyEntries).First();
+
+            string laneANetNameNumber = laneA.FirstNet.Split('<').Last();
+            string laneBNetNameNumber = laneB.FirstNet.Split('<').Last();
+
+            string firstNetNameComplete = laneANetNameIdentifier + laneANetNameNumber;
+            string secondNetNameComplete = laneBNetNameIdentifier + laneBNetNameNumber;
+
+            LaneGroup tempLaneGroup = new LaneGroup();
+
+            if (firstNetNameComplete == secondNetNameComplete)
+            {
+                ChooseParsingLanes(tempList, headers, laneA, laneB);
+
+                secondaryIndex += 1;
+            }
+            else if (firstNetNameComplete != secondNetNameComplete && fewerLanesFlag == "LANE_A")
+            {
+                tempLaneGroup.FirstNet = "Lane not found...";
+
+                ChooseParsingLanes(tempList, headers, tempLaneGroup, laneB);
+            }
+            else if (firstNetNameComplete != secondNetNameComplete && fewerLanesFlag == "LANE_B")
+            {
+                tempLaneGroup.FirstNet = "Lane not found...";
+
+                ChooseParsingLanes(tempList, headers, laneA, tempLaneGroup);
+            }
+
+
+            headers.Add("\n");
+            tempList.Add("\n");
+        }
+
+        public void ChooseParsingLanes(List<string> tempList, List<string> headers, LaneGroup laneA, LaneGroup laneB)
+        {
+            ParseLaneGroups(tempList, headers, laneA.FirstNet, laneA.FirstLayerAndLengths);
+            ParseLaneGroups(tempList, headers, laneA.SecondNet, laneA.SecondLayerAndLengths);
+            ParseTotalViaOnLane(tempList, headers, laneA.TotalViaCount);
+
+            headers.Add(",");
+            tempList.Add(",");
+
+            ParseLaneGroups(tempList, headers, laneB.FirstNet, laneB.FirstLayerAndLengths);
+            ParseLaneGroups(tempList, headers, laneB.SecondNet, laneB.SecondLayerAndLengths);
+            ParseTotalViaOnLane(tempList, headers, laneB.TotalViaCount);
+        }
+
+        public void ParseLaneGroups(List<string> tempList, List<string> headers, string laneNet, Dictionary<string, string> layerLengthDict)
         {
             if (!string.IsNullOrEmpty(laneNet))
             {
                 headers.Add("Net Name,");
                 tempList.Add(laneNet + ",");
             }
-            else if (laneNet == "" && laneLayerAndLengths.Count > 0)
+            else if (laneNet == "" && layerLengthDict.Count > 0)
             {
                 tempList.Add(" " + ",");
             }
-
-            if (laneLayerAndLengths.Count > 0)
+            else if (laneNet == "N/A")
             {
-                Dictionary<string, string> layerLengthDict = laneLayerAndLengths;
+                tempList.Add("Lane not found... " + ",");
+            }
+
+            if (layerLengthDict.Count > 0)
+            {
+                //Dictionary<string, string> layerLengthDict = laneLayerAndLengths;
                 // Check all possible layers to determine what is routed
                 ParseLayersInDict(tempList, headers, layerLengthDict, "TOP");
                 ParseLayersInDict(tempList, headers, layerLengthDict, "L1");
@@ -162,6 +251,25 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 else
                 {
                     tempList.Add("0,");
+                }
+            }
+        }
+
+        public void WriteToCSV()
+        {
+            string outputFile = @"\__OUTPUT__ParsedLanes_" + mlb_file + ".csv";
+            using (var writer = new StreamWriter(mlb_directory + outputFile))
+            {
+                // Write the board file name to begin
+                string boardFileNameHeader = "Board File:, " + mlb_file + ",";
+                writer.Write(boardFileNameHeader);
+
+                foreach (var row in outputList)
+                {
+                    foreach (var item in row)
+                    {
+                        writer.Write(item);
+                    }
                 }
             }
         }

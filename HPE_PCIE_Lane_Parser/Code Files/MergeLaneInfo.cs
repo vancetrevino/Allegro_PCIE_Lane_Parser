@@ -37,6 +37,14 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                     string connPinPair = "";
                     string pinToCheck = "";
 
+                    string startingNet = "";
+                    Dictionary<string, string> startingLayersandLengths = new Dictionary<string, string>();
+                    string startingViaCount = "0";
+
+                    string endingNet = "";
+                    Dictionary<string, string> endingLayersandLengths = new Dictionary<string, string>();
+                    string endinggViaCount = "0";
+
                     if (lane.FullPinPair.Contains(connector))
                     {
                         // Get which pin pair (start or end) of the lane should be stored in the new LaneGroup object
@@ -51,7 +59,6 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                             pinToCheck = lane.PinPairStart;
                         }
 
-                        LaneGroup completeLaneGroup = new LaneGroup(connector, lane.NetName, lane.LayerAndLengths, lane.ViaCount, connPinPair);
                         string? capPinToFind = checkPinForCap(lane, pinToCheck);
 
                         // Check if current net is connected to a capacitor
@@ -59,11 +66,24 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                         {
                             if (pinPairIndexes.TryGetValue(capPinToFind, out int index))
                             {
-                                completeLaneGroup.SecondNet = pcieLanesInfo[index].NetName;
-                                completeLaneGroup.SecondLayerAndLengths = pcieLanesInfo[index].LayerAndLengths;
-                                completeLaneGroup.SecondViaCount = pcieLanesInfo[index].ViaCount;
+                                startingNet = pcieLanesInfo[index].NetName;
+                                startingLayersandLengths = pcieLanesInfo[index].LayerAndLengths;
+                                startingViaCount = pcieLanesInfo[index].ViaCount;
+
+                                endingNet = lane.NetName;
+                                endingLayersandLengths = lane.LayerAndLengths;
+                                endinggViaCount = lane.ViaCount;
                             }
                         }
+                        else
+                        {
+                            startingNet = lane.NetName;
+                            startingLayersandLengths = lane.LayerAndLengths;
+                            startingViaCount = lane.ViaCount;
+                        }
+
+                        LaneGroup completeLaneGroup = new LaneGroup(connector, startingNet, startingLayersandLengths, startingViaCount, 
+                                                                    connPinPair, endingNet, endingLayersandLengths, endinggViaCount);
 
                         completeLaneGroup.CalcTotalViaCount();
 
@@ -186,9 +206,10 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
             }
         }
 
-        // Method to check if the other pin pair of the lane is a capacitor or not. If so, then return it's other capacitor pin
+        // Check to see if the current lane an inline capacitor or not. If so, then return it's other capacitor pin
         public string? checkPinForCap(DiffPairLane diffPair, string pinToCheck)
         {
+            // Check either the pin pair for a capacitor or the netname for the standard capacitor notation
             if (pinToCheck.Contains("C") || diffPair.NetName.Contains("_C_"))
             {
                 // Pin pair notates a capacitor, so find the end pin number of the cap and return the opposite number

@@ -238,11 +238,11 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
             Dictionary<string, int> result = new Dictionary<string, int>();
             for (var i = 0; i < diffPairLanes.Count; i++)
             {
-                if (diffPairLanes[i].PinPairEnd.Contains("C") && !diffPairLanes[i].PinPairEnd.Contains("U"))
+                if (diffPairLanes[i].PinPairEnd.Contains("C") && !diffPairLanes[i].PinPairEnd.Contains("U") && !result.ContainsKey(diffPairLanes[i].PinPairEnd))
                 {
                     result.Add(diffPairLanes[i].PinPairEnd, i);
                 }
-                else if (diffPairLanes[i].PinPairStart.Contains("C") && !diffPairLanes[i].PinPairStart.Contains("U"))
+                else if (diffPairLanes[i].PinPairStart.Contains("C") && !diffPairLanes[i].PinPairStart.Contains("U") && !result.ContainsKey(diffPairLanes[i].PinPairStart))
                 {
                     result.Add(diffPairLanes[i].PinPairStart, i);
                 }

@@ -114,6 +114,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
                 // Check to see if the A side and B side lanes match each other: net name and port-number wise.
                 // AKA: Both are referring to the same lane and port number. --> P5E2A<0>_TX and P5E2A<0>_RX
+                // Ignore for UPI lanes, as some UPI lanes are routed to different ports.
                 CheckLaneEquality(tempList, headers, laneA, laneB, fewerLanesFlag, ref secondaryIndex);
 
                 ChangeHeaderGroup(headers, connectorRefDesGroup, ref previousRefDes);
@@ -136,7 +137,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
             LaneGroup tempLaneGroup = new LaneGroup();
 
-            if (firstNetNameComplete == secondNetNameComplete)
+            if ((firstNetNameComplete == secondNetNameComplete) || (laneA.FirstNet.Contains("UPI") || laneB.FirstNet.Contains("UPI")))
             {
                 ChooseParsingLanes(tempList, headers, laneA, laneB);
 

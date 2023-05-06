@@ -174,11 +174,11 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 // For UPI lane sorting
                 if (groupType == "UPI")
                 {
-                    if (lane.NetName.Contains("CPU1_CPU0") || lane.NetName.Contains("_RT_"))
+                    if (lane.NetName.Contains("CPU1_CPU0") || lane.NetName.Contains("_RT_") || lane.NetName.Contains("_RX_"))
                     {
                         upiRx.Add(completeLaneGroup);
                     }
-                    else if (lane.NetName.Contains("CPU0_CPU1") || lane.NetName.Contains("_TR_"))
+                    else if (lane.NetName.Contains("CPU0_CPU1") || lane.NetName.Contains("_TR_") || lane.NetName.Contains("_TX_"))
                     {
                         upiTx.Add(completeLaneGroup);
                     }

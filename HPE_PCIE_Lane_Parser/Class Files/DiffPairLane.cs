@@ -36,24 +36,5 @@ namespace Allegro_PCIE_Lane_Parser.Class_Files
 
             return new string[] { splitPairs[0], splitPairs[1] };
         }
-
-        public string FindNewConnectors(HashSet<string> connectorRefDesHash)
-        {
-            string firstRefDes = PinPairStart.Split(".")[0];
-            string secondRefDes = PinPairEnd.Split(".")[0];
-
-            if (!connectorRefDesHash.Contains(firstRefDes) && firstRefDes.Contains('J'))
-            {
-                return firstRefDes;
-            }
-            else if (!connectorRefDesHash.Contains(secondRefDes) && secondRefDes.Contains('J'))
-            {
-                return secondRefDes;
-            }
-            else
-            {
-                return null;
-            }
-        }
     }
 }

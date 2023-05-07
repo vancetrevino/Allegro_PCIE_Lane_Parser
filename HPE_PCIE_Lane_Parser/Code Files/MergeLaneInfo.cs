@@ -9,11 +9,9 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 {
     internal class MergeLaneInfo
     {
-        private HashSet<string> connectorRefDes { get; set; }
-
-        public MergeLaneInfo(HashSet<string> connector)
+        public MergeLaneInfo()
         {
-            connectorRefDes = connector;
+
         }
 
         List<LaneGroup> aLaneGroupsComplete = new List<LaneGroup>();
@@ -22,7 +20,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
         List<LaneGroup> upiRxLaneGroupsComplete = new List<LaneGroup>();
         List<LaneGroup> otherLaneGroupsComplete = new List<LaneGroup>();
 
-        public void MergePcieLanes(List<DiffPairLane> pcieLanesInfo, Dictionary<string, int> pinPairIndexes)
+        public void MergePcieLanes(List<DiffPairLane> pcieLanesInfo, Dictionary<string, int> pinPairIndexes, string[] cpuRefDes, HashSet<string> connectorRefDesHash)
         {
             List<LaneGroup> aSideLanesCpu0 = new List<LaneGroup>();
             List<LaneGroup> aSideLanesCpu1 = new List<LaneGroup>();
@@ -30,97 +28,96 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
             List<LaneGroup> bSideLanesCpu0 = new List<LaneGroup>();
             List<LaneGroup> bSideLanesCpu1 = new List<LaneGroup>();
 
-            foreach (var connector in connectorRefDes)
+            foreach (var lane in pcieLanesInfo)
             {
-                foreach (var lane in pcieLanesInfo)
+                string connPinPair = "";
+                string pinToCheck = "";
+
+                string startingNet = "";
+                Dictionary<string, string> startingLayersandLengths = new Dictionary<string, string>();
+                string startingViaCount = "0";
+
+                string endingNet = "";
+                Dictionary<string, string> endingLayersandLengths = new Dictionary<string, string>();
+                string endinggViaCount = "0";
+
+                // Checking if either the start/end pin pair contains the CPU ref des, or if two connectors are connected together. 
+                // Redundancy checks to get all connectors/devices that PCIE lanes are connected to. 
+                if ((cpuRefDes.Any(lane.FullPinPair.Contains)) || (lane.PinPairStart.Contains('J') && lane.PinPairEnd.Contains('J')))
                 {
-                    string connPinPair = "";
-                    string pinToCheck = "";
-
-                    string startingNet = "";
-                    Dictionary<string, string> startingLayersandLengths = new Dictionary<string, string>();
-                    string startingViaCount = "0";
-
-                    string endingNet = "";
-                    Dictionary<string, string> endingLayersandLengths = new Dictionary<string, string>();
-                    string endinggViaCount = "0";
-
-                    if (lane.FullPinPair.Contains(connector))
+                    if (cpuRefDes.Any(lane.PinPairStart.Contains))
                     {
-                        // Get which pin pair (start or end) of the lane should be stored in the new LaneGroup object
-                        if (lane.PinPairStart.Contains(connector))
-                        {
-                            connPinPair = lane.PinPairStart;
-                            pinToCheck = lane.PinPairEnd;
-                        }
-                        else if (lane.PinPairEnd.Contains(connector))
-                        {
-                            connPinPair = lane.PinPairEnd;
-                            pinToCheck = lane.PinPairStart;
-                        }
+                        connPinPair = lane.PinPairEnd;
+                        pinToCheck = lane.PinPairEnd;
+                    }
+                    else if (cpuRefDes.Any(lane.PinPairEnd.Contains))
+                    {
+                        connPinPair = lane.PinPairStart;
+                        pinToCheck = lane.PinPairStart;
+                    }
+                    else if (connectorRefDesHash.Any(lane.PinPairStart.Contains))
+                    {
+                        connPinPair = lane.PinPairEnd;
+                        pinToCheck = lane.PinPairEnd;
+                    }
+                    else if (connectorRefDesHash.Any(lane.PinPairEnd.Contains))
+                    {
+                        connPinPair = lane.PinPairStart;
+                        pinToCheck = lane.PinPairStart;
+                    }
+                    else 
+                    {
+                        connPinPair = lane.PinPairEnd;
+                        pinToCheck = lane.PinPairEnd;
+                    }
 
-                        string? capPinToFind = checkPinForCap(lane, pinToCheck);
+                    string? capPinToFind = checkPinForCap(lane, pinToCheck);
 
-                        // Check if current net is connected to a capacitor
-                        if (capPinToFind != null)
+                    // Check if current net is connected to a capacitor
+                    if (capPinToFind != null)
+                    {
+                        if (pinPairIndexes.TryGetValue(capPinToFind, out int index))
                         {
-                            if (pinPairIndexes.TryGetValue(capPinToFind, out int index))
-                            {
-                                startingNet = pcieLanesInfo[index].NetName;
-                                startingLayersandLengths = pcieLanesInfo[index].LayerAndLengths;
-                                startingViaCount = pcieLanesInfo[index].ViaCount;
-
-                                endingNet = lane.NetName;
-                                endingLayersandLengths = lane.LayerAndLengths;
-                                endinggViaCount = lane.ViaCount;
-                            }
-                        }
-                        else
-                        {
-                            startingNet = lane.NetName;
+                            startingNet  = lane.NetName;
                             startingLayersandLengths = lane.LayerAndLengths;
-                            startingViaCount = lane.ViaCount;
-                        }
+                            startingViaCount  = lane.ViaCount;
 
-                        LaneGroup completeLaneGroup = new LaneGroup(connector, startingNet, startingLayersandLengths, startingViaCount, 
-                                                                    connPinPair, endingNet, endingLayersandLengths, endinggViaCount);
+                            endingNet = pcieLanesInfo[index].NetName;
+                            endingLayersandLengths  = pcieLanesInfo[index].LayerAndLengths;
+                            endinggViaCount = pcieLanesInfo[index].ViaCount;
 
-                        completeLaneGroup.CalcTotalViaCount();
-
-
-                        if (lane.NetName.Contains("CPU0"))
-                        {
-                            if ((connPinPair.Contains(".B_A") || connPinPair.Contains(".A")) && !(connPinPair.Contains(".A_B")))
+                            if (pcieLanesInfo[index].PinPairStart.Contains("C"))
                             {
-                                aSideLanesCpu0.Add(completeLaneGroup);
+                                connPinPair = pcieLanesInfo[index].PinPairEnd;
                             }
-                            else if ((connPinPair.Contains(".A_B") || connPinPair.Contains(".B")) && !(connPinPair.Contains(".B_A")))
+                            else
                             {
-                                bSideLanesCpu0.Add(completeLaneGroup);
+                                connPinPair = pcieLanesInfo[index].PinPairStart;
                             }
                         }
-                        else if (lane.NetName.Contains("CPU1"))
-                        {
-                            if ((connPinPair.Contains(".B_A") || connPinPair.Contains(".A")) && !(connPinPair.Contains(".A_B")))
-                            {
-                                aSideLanesCpu1.Add(completeLaneGroup);
-                            }
-                            else if ((connPinPair.Contains(".A_B") || connPinPair.Contains(".B")) && !(connPinPair.Contains(".B_A")))
-                            {
-                                bSideLanesCpu1.Add(completeLaneGroup);
-                            }
-                        }
-                        else
-                        {
-                            if ((connPinPair.Contains(".B_A") || connPinPair.Contains(".A")) && !(connPinPair.Contains(".A_B")))
-                            {
-                                aSideLanesCpu0.Add(completeLaneGroup);
-                            }
-                            else if ((connPinPair.Contains(".A_B") || connPinPair.Contains(".B")) && !(connPinPair.Contains(".B_A")))
-                            {
-                                bSideLanesCpu0.Add(completeLaneGroup);
-                            }
-                        }
+                    }
+                    else
+                    {
+                        startingNet = lane.NetName;
+                        startingLayersandLengths = lane.LayerAndLengths;
+                        startingViaCount = lane.ViaCount;
+                    }
+
+                    string connector = connPinPair.Split('.')[0];
+
+                    LaneGroup completeLaneGroup = new LaneGroup(connector, startingNet, startingLayersandLengths, startingViaCount,
+                                                                connPinPair, endingNet, endingLayersandLengths, endinggViaCount);
+
+                    completeLaneGroup.CalcTotalViaCount();
+
+
+                    if (lane.NetName.Contains("CPU1"))
+                    {
+                        SortLaneIntoCpu(connPinPair, ref aSideLanesCpu1, ref bSideLanesCpu1, ref completeLaneGroup);
+                    }
+                    else
+                    {
+                        SortLaneIntoCpu(connPinPair, ref aSideLanesCpu0, ref bSideLanesCpu0, ref completeLaneGroup);
                     }
                 }
             }
@@ -136,6 +133,20 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
             bLaneGroupsComplete.AddRange(bLanesInOrderCpu0);
             bLaneGroupsComplete.AddRange(bLanesInOrderCpu1);
         }
+
+
+        public void SortLaneIntoCpu(string connPinPair, ref List<LaneGroup>  aSideLanes, ref List<LaneGroup>  bSideLanes, ref LaneGroup completeLaneGroup)
+        {
+            if ((connPinPair.Contains(".B_A") || connPinPair.Contains(".A")) && !(connPinPair.Contains(".A_B")))
+            {
+                aSideLanes.Add(completeLaneGroup);
+            }
+            else if ((connPinPair.Contains(".A_B") || connPinPair.Contains(".B")) && !(connPinPair.Contains(".B_A")))
+            {
+                bSideLanes.Add(completeLaneGroup);
+            }
+        }
+        
 
         public void MergeOtherLanes(string groupType, List<DiffPairLane> otherLanesInfo)
         {

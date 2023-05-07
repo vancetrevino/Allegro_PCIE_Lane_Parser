@@ -36,6 +36,7 @@ namespace Allegro_PCIE_Lane_Parser
         List<DiffPairLane> usbLanesInfoList = new List<DiffPairLane>();
 
         HashSet<string> connectorRefDesHash = new HashSet<string>();
+        string[] cpuRefDes = new string[2];
 
         List<LaneGroup> aLaneGroupComplete = new List<LaneGroup>();
         List<LaneGroup> bLaneGroupComplete = new List<LaneGroup>();
@@ -116,8 +117,9 @@ namespace Allegro_PCIE_Lane_Parser
             clockLanesInfoList = parser.GetClockLaneInfo();
             upiLanesInfoList = parser.GetUpiLaneInfo();
             usbLanesInfoList = parser.GetUsbLaneInfo();
-            connectorRefDesHash = parser.GetConnRefDes();
             pciePinPairIndexes = parser.GetPinPairIndex(pcieLaneInfoList);
+            cpuRefDes = parser.FindCpuRefDes(pcieLaneInfoList);
+            connectorRefDesHash = parser.FindConnectorsAttachedToCpu(pcieLaneInfoList, cpuRefDes);
 
             mlb_textBox.Text += "Finished parsing all reports. Please click 'Start/Run' to continue the program. \n";
             mlb_textBox.Text += "------------------------------------------------------------------------ \n\n";
@@ -128,9 +130,9 @@ namespace Allegro_PCIE_Lane_Parser
             mlb_textBox.Text += "Exporting final lane data to a CSV file. \n";
 
             // Merge all the data parsed from the Allegro reports 
-            MergeLaneInfo merge = new MergeLaneInfo(connectorRefDesHash);
+            MergeLaneInfo merge = new MergeLaneInfo();
 
-            merge.MergePcieLanes(pcieLaneInfoList, pciePinPairIndexes);
+            merge.MergePcieLanes(pcieLaneInfoList, pciePinPairIndexes, cpuRefDes, connectorRefDesHash);
             merge.MergeOtherLanes("UPI", upiLanesInfoList);
             merge.MergeOtherLanes("CLK", clockLanesInfoList);
             merge.MergeOtherLanes("USB", usbLanesInfoList);

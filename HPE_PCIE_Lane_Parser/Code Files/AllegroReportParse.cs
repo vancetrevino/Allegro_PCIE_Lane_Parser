@@ -30,8 +30,6 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
 
         // Extra variables
-        private HashSet<string> connectorRefDes = new HashSet<string>();
-
         MainWindow mw = (MainWindow)Application.Current.MainWindow;
 
         // List data structures to hold all diff pair lane info
@@ -66,13 +64,6 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                             if (netName.Contains(pcieNetIdentifier))
                             {
                                 DiffPairLane pcieDiffPair = new DiffPairLane(netName, pinPair, totalLength);
-                                string pcieRefDes = pcieDiffPair.FindNewConnectors(connectorRefDes);
-
-                                if (pcieRefDes != null)
-                                {
-                                    connectorRefDes.Add(pcieRefDes);
-                                }
-
                                 pcieLanesInfo.Add(pcieDiffPair);
                             }
 
@@ -251,6 +242,77 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
             return result;
         }
 
+        public string[] FindCpuRefDes(List<DiffPairLane> diffPairLanes)
+        {
+            Dictionary<string, int> RefDesInstancesCount = new Dictionary<string, int>();
+            string[] CpuRefDes = new string[2];
+
+            int highestRefDesCount = 0;
+            int nextHighestRefDesCount = 0;
+
+            for (var i = 0; i < diffPairLanes.Count; i++)
+            {
+                string firstRefDes = diffPairLanes[i].PinPairStart.Split(".")[0];
+                string secondRefDes = diffPairLanes[i].PinPairEnd.Split(".")[0];
+
+                if (firstRefDes.Contains('U') && !RefDesInstancesCount.ContainsKey(firstRefDes))
+                {
+                    RefDesInstancesCount.Add(firstRefDes, 1);
+                }
+                else if (secondRefDes.Contains('U') && !RefDesInstancesCount.ContainsKey(secondRefDes))
+                {
+                    RefDesInstancesCount.Add(secondRefDes, 1);
+                }
+                else if (RefDesInstancesCount.ContainsKey(firstRefDes))
+                {
+                    RefDesInstancesCount[firstRefDes] += 1;
+                }
+                else if (RefDesInstancesCount.ContainsKey(secondRefDes))
+                {
+                    RefDesInstancesCount[secondRefDes] += 1;
+                }
+            }
+
+            foreach (var refDes in RefDesInstancesCount)
+            {
+                if (refDes.Value > nextHighestRefDesCount)
+                {
+                    nextHighestRefDesCount = refDes.Value;
+                    CpuRefDes[0] = refDes.Key;
+                }
+
+                if (refDes.Value >= highestRefDesCount && refDes.Key != CpuRefDes[0])
+                {
+                    highestRefDesCount = refDes.Value;
+                    CpuRefDes[1] = refDes.Key;
+                }
+            }
+
+            return CpuRefDes;
+        }
+
+        public HashSet<string> FindConnectorsAttachedToCpu(List<DiffPairLane> diffPairLanes, string[] cpuRefDes)
+        {
+            HashSet<string> connectorsAttachedToCpu = new HashSet<string>();
+
+            for (var i = 0; i < diffPairLanes.Count; i++)
+            {
+                string firstRefDes = diffPairLanes[i].PinPairStart.Split(".")[0];
+                string secondRefDes = diffPairLanes[i].PinPairEnd.Split(".")[0];
+
+                if (firstRefDes.Contains('J') && cpuRefDes.Any(secondRefDes.Contains))
+                {
+                    connectorsAttachedToCpu.Add(firstRefDes);
+                }
+                else if (secondRefDes.Contains('J') && cpuRefDes.Any(firstRefDes.Contains))
+                {
+                    connectorsAttachedToCpu.Add(secondRefDes);
+                }
+            }
+
+            return connectorsAttachedToCpu;
+        }
+
         public List<DiffPairLane> GetPcieLaneInfo()
         {
             return pcieLanesInfo;
@@ -269,11 +331,6 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
         public List<DiffPairLane> GetUsbLaneInfo()
         {
             return usbLanesInfo;
-        }
-
-        public HashSet<String> GetConnRefDes()
-        {
-            return connectorRefDes;
         }
     }
 }

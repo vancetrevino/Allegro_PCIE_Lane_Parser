@@ -41,7 +41,7 @@
 
                         <Border BorderThickness="1" BorderBrush="#FF8E8F94" Grid.Column="0" Grid.Row="2" Margin="0,10,10,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                             <ScrollViewer>
-                                <TextBlock x:Name="mlb_textBox" HorizontalAlignment="Stretch"  TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="3,0,0,0" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Visible">
+                                <TextBlock x:Name="mlb_textBlock" HorizontalAlignment="Stretch"  TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="3,0,0,0" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Visible">
                                     <Run Text="Welcome to the HPE PCIE lane parser tool."/><LineBreak/>
                                     <Run Text="This tool will parse an Allegro board file, and find all PCIE lanes connected from the CPU to each connector on the board."/><LineBreak/>
                                     <Run Text="-- Written by Vance Trevino"/><LineBreak/><Run/><LineBreak/>
@@ -67,6 +67,62 @@
                         </DockPanel>
                         <Button Name="mlb_settings" Click="mlb_settings_Click"  Grid.Column="1" Grid.Row="2" Padding="0,3,0,3" VerticalAlignment="Bottom">Settings</Button>
                     </Grid>
+                </TabItem>
+
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Riser" Foreground="Green" />
+                        </StackPanel>
+                    </TabItem.Header>
+
+                    <Grid Margin="10" ShowGridLines="false">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="125"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="*"></RowDefinition>
+                        </Grid.RowDefinitions>
+
+                        <TextBox x:Name="riser_boardFileLocation" Margin="0,0,10,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" HorizontalScrollBarVisibility="Visible" 
+                             Padding="3,3,0,3" ScrollViewer.CanContentScroll="True" AutomationProperties.IsRequiredForForm="True" 
+                             Grid.Column="0" Grid.Row="1" BorderBrush="#FF8E8F94">Directory of Riser Board Layout File...</TextBox>
+
+                        <Button Name="riser_btnOpenFile" Click="riser_btnOpenFile_Click" DockPanel.Dock="Right" Grid.Column="1" Grid.Row="1">Open File</Button>
+
+                        <Border BorderThickness="1" BorderBrush="#FF8E8F94" Grid.Column="0" Grid.Row="2" Margin="0,10,10,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                            <ScrollViewer>
+                                <TextBlock x:Name="riser_textBlock" HorizontalAlignment="Stretch"  TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="3,0,0,0" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Visible">
+                                    <Run Text="Welcome to the HPE PCIE lane parser tool."/><LineBreak/>
+                                    <Run Text="This tool will parse an Allegro board file, and find all PCIE lanes connected from the CPU to each connector on the board."/><LineBreak/>
+                                    <Run Text="-- Written by Vance Trevino"/><LineBreak/><Run/><LineBreak/>
+                                    <Run Text="The tools works as follows:"/><LineBreak/>
+                                    <Run Text="  1. Click the &quot;Open File&quot; button and navigate to the Allegro layout board file that you would like to parse PCIE lanes for."/><LineBreak/>
+                                    <Run Text="  2. If a valid board file with the extension (.brd) is detected, the tool will begin to check if the necessary Allegro reports are in the corresponding folder. "/><LineBreak/>
+                                    <Run Text="  3. If one or more Allegro reports are missing, then the tool will begin generating the reports."/><LineBreak/>
+                                    <Run Text="  4. Once all reports have been generated, the &quot;Analyze Board &amp; Start&quot; button will become accessible."/><LineBreak/>
+                                    <Run Text="  5. Click the &quot;Analyze Board &amp; Start&quot; button and the tool will begin to read and parse each report."/><LineBreak/>
+                                    <Run Text="  6. Once the analysis is complete, the the tool will automatically output a (.csv) file in the same directory as your board file."/><LineBreak/>
+                                    <Run Text="  7. The (.csv) file will be named &quot;__OUTPUT__ParsedLanes_*board_file_name*.csv&quot;."/><LineBreak/><LineBreak/>
+                                    <Run Text="NOTES... "/><LineBreak/>
+                                    <Run Text="  - You must have the Cadence SPB Suite (v17.2 or later) installed."/><LineBreak/>
+                                    <Run Text="  - The tool generates each report by using the folder &quot;C:\Cadence\SPB_17.2\tools\bin&quot;."/><LineBreak/>
+                                    <Run Text="  - If you installed Cadence/Allegro in a different location you may need to change the settings in this tool."/><LineBreak/>
+                                    <Run Text="  - You MUST have all the lanes completely connected (CPU to endpoint) in your board file."/><LineBreak/>
+                                </TextBlock>
+                            </ScrollViewer>
+                        </Border>
+
+                        <DockPanel Grid.Column="1" Grid.Row="2" VerticalAlignment="Center">
+                            <Button x:Name="riser_analyzeBoard" Click="riser_analyzeBoard_Click" Padding="0,3,0,3" VerticalAlignment="Center" IsEnabled="False" Content="Analyze Board &amp; Start" HorizontalAlignment="Stretch" DockPanel.Dock="Top"/>
+                        </DockPanel>
+                        <Button Name="riser_settings" Click="riser_settings_Click"  Grid.Column="1" Grid.Row="2" Padding="0,3,0,3" VerticalAlignment="Bottom">Settings</Button>
+
+                    </Grid>
+
                 </TabItem>
             </TabControl>
         </Grid>

@@ -26,6 +26,9 @@ namespace Allegro_PCIE_Lane_Parser
     {
         string mlb_directory = "";
         string mlb_fileName = "";
+        string riser_directory = "";
+        string riser_fileName = "";
+
         string viaReportLocation = "";
         string etchLengthReportLocation = "";
         string pinPairReportLocation = "";
@@ -36,7 +39,7 @@ namespace Allegro_PCIE_Lane_Parser
         List<DiffPairLane> usbLanesInfoList = new List<DiffPairLane>();
 
         HashSet<string> connectorRefDesHash = new HashSet<string>();
-        string[] cpuRefDes = new string[2];
+        string[] MainConnectorRefDes = new string[2];
 
         List<LaneGroup> aLaneGroupComplete = new List<LaneGroup>();
         List<LaneGroup> bLaneGroupComplete = new List<LaneGroup>();
@@ -51,16 +54,52 @@ namespace Allegro_PCIE_Lane_Parser
             InitializeComponent();
         }
 
-        public string mlb_textBoxValue
+        //public string mlb_textBlockValue
+        //{
+        //    get {  return mlb_textBlock.Text; }
+        //    set { mlb_textBlock.Text = value; }
+        //}
+
+        //public string riser_textBlockValue
+        //{
+        //    get { return riser_textBlock.Text; }
+        //    set { riser_textBlock.Text = value; }
+        //}
+
+        private void mlb_settings_Click(object sender, RoutedEventArgs e)
         {
-            get {  return mlb_textBox.Text; }
-            set { mlb_textBox.Text = value; }
+
         }
 
         private void mlb_btnOpenFile_Click(object sender, RoutedEventArgs e)
         {
-            mlb_analyzeBoard.IsEnabled = false;
-            //mlb_runProgram.IsEnabled = false;
+            FindAndOpenBoardFile(mlb_analyzeBoard, mlb_boardFileLocation, ref mlb_textBlock, ref mlb_directory, ref mlb_fileName);
+        }
+
+        private void mlb_analyzeBoard_Click(object sender, RoutedEventArgs e)
+        {
+            AnalyzeBoardAndPrintCsvFile(ref mlb_textBlock, "mlb", mlb_directory, mlb_fileName);
+        }
+
+        private void riser_settings_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void riser_btnOpenFile_Click(object sender, RoutedEventArgs e)
+        {
+            FindAndOpenBoardFile(riser_analyzeBoard, riser_boardFileLocation, ref riser_textBlock, ref riser_directory, ref riser_fileName);
+        }
+
+        private void riser_analyzeBoard_Click(object sender, RoutedEventArgs e)
+        {
+            AnalyzeBoardAndPrintCsvFile(ref riser_textBlock, "riser", riser_directory, riser_fileName);
+        }
+
+        
+        private void FindAndOpenBoardFile(Button analyzeBoardButton, TextBox boardFileLocation, ref TextBlock boardOutputTextBlock, ref string boardDirectory, ref string boardFileName)
+        {
+            analyzeBoardButton.IsEnabled = false;
 
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "BRD files (*.brd)|*.brd|All files (*.*)|*.*";
@@ -72,92 +111,94 @@ namespace Allegro_PCIE_Lane_Parser
             // Load content of file in a TextBlock
             if ((result == true) && (openFileDialog.FileName.EndsWith(".brd")))
             {
-                mlb_directory = Path.GetDirectoryName(openFileDialog.FileName);
-                mlb_fileName = Path.GetFileName(openFileDialog.FileName);
-                mlb_boardFileLocation.Text = openFileDialog.FileName;
+                boardDirectory = Path.GetDirectoryName(openFileDialog.FileName);
+                boardFileName = Path.GetFileName(openFileDialog.FileName);
+                boardFileLocation.Text = openFileDialog.FileName;
 
-                mlb_textBox.Text = String.Empty;
-                mlb_textBox.Text = "A valid board layout file has been detected. \n";
-                mlb_textBox.Text += "------------------------------------------------------------------------ \n\n";
+                boardOutputTextBlock.Text = String.Empty;
+                boardOutputTextBlock.Text = "A valid board layout file has been detected. \n";
+                boardOutputTextBlock.Text += "------------------------------------------------------------------------ \n\n";
 
                 // Allegro report check and generation 
-                BrdReportGen mlbReports = new BrdReportGen(mlb_directory, @"C:\Cadence\SPB_17.2\tools\bin");
-                bool reportCheck = mlbReports.SearchForAllReports();
-                if (!reportCheck) 
-                { 
-                    mlbReports.GenerateAllReports(mlb_boardFileLocation.Text);
-                    mlbReports.GeneratingStatus();
+                BrdReportGen boardReports = new BrdReportGen(boardDirectory, @"C:\Cadence\SPB_17.2\tools\bin", analyzeBoardButton, boardOutputTextBlock);
+                bool reportCheck = boardReports.SearchForAllReports();
+                if (!reportCheck)
+                {
+                    boardReports.GenerateAllReports(boardFileLocation.Text);
+                    boardReports.GeneratingStatus();
                 }
 
-                (viaReportLocation, etchLengthReportLocation, pinPairReportLocation) = mlbReports.GetReportLocations();
-    }
+                (viaReportLocation, etchLengthReportLocation, pinPairReportLocation) = boardReports.GetReportLocations();
+            }
             else
             {
-                mlb_boardFileLocation.Text = "Invalid board file. Please input a valid board file with the extension '.brd'\n";
+                boardFileLocation.Text = "Invalid board file. Please input a valid board file with the extension '.brd'\n";
             }
         }
 
-        private void mlb_settings_Click(object sender, RoutedEventArgs e)
+        private void AnalyzeBoardAndPrintCsvFile(ref TextBlock boardOutputTextBlock, string boardType, string boardDirectory, string boardFileName)
         {
-
-        }
-
-        private void mlb_analyzeBoard_Click(object sender, RoutedEventArgs e)
-        {
-            mlb_textBox.Text += "------------------------------------------------------------------------ \n\n";
-            mlb_textBox.Text += "Now analyzing all of the generated Allegro Reports to parse the lanes. \n";
+            boardOutputTextBlock.Text += "------------------------------------------------------------------------ \n\n";
+            boardOutputTextBlock.Text += "Now analyzing all of the generated Allegro Reports to parse the lanes. \n";
             // Parse the generated Allegro reports
             AllegroReportParse parser = new AllegroReportParse(viaReportLocation, etchLengthReportLocation, pinPairReportLocation);
+
+            // Merge all the data parsed from the Allegro reports 
+            MergeLaneInfo merge = new MergeLaneInfo();
+
+            PrintToCSV csvPrint = new PrintToCSV(boardDirectory, boardFileName);
 
             parser.ParsePinPairReport();
             parser.ParseLengthByLayerReport();
             parser.ParseViaReport();
 
             pcieLaneInfoList = parser.GetPcieLaneInfo();
-            clockLanesInfoList = parser.GetClockLaneInfo();
-            upiLanesInfoList = parser.GetUpiLaneInfo();
-            usbLanesInfoList = parser.GetUsbLaneInfo();
             pciePinPairIndexes = parser.GetPinPairIndex(pcieLaneInfoList);
-            cpuRefDes = parser.FindCpuRefDes(pcieLaneInfoList);
-            connectorRefDesHash = parser.FindConnectorsAttachedToCpu(pcieLaneInfoList, cpuRefDes);
+            MainConnectorRefDes = parser.FindMainConnectorRefDes(pcieLaneInfoList, boardType);
+            connectorRefDesHash = parser.FindConnectorsAttachedToMainConnector(pcieLaneInfoList, MainConnectorRefDes);        
 
-            mlb_textBox.Text += "Finished parsing all reports. Please click 'Start/Run' to continue the program. \n";
-            mlb_textBox.Text += "------------------------------------------------------------------------ \n\n";
+            boardOutputTextBlock.Text += "Finished parsing all reports. Please click 'Start/Run' to continue the program. \n";
+            boardOutputTextBlock.Text += "------------------------------------------------------------------------ \n\n";
+            boardOutputTextBlock.Text += "Now beginning to run the program. \n";
+            boardOutputTextBlock.Text += "Exporting final lane data to a CSV file. \n";
 
-            //mlb_runProgram.IsEnabled = true;
-
-            mlb_textBox.Text += "Now beginning to run the program. \n";
-            mlb_textBox.Text += "Exporting final lane data to a CSV file. \n";
-
-            // Merge all the data parsed from the Allegro reports 
-            MergeLaneInfo merge = new MergeLaneInfo();
-
-            merge.MergePcieLanes(pcieLaneInfoList, pciePinPairIndexes, cpuRefDes, connectorRefDesHash);
-            merge.MergeOtherLanes("UPI", upiLanesInfoList);
-            merge.MergeOtherLanes("CLK", clockLanesInfoList);
-            merge.MergeOtherLanes("USB", usbLanesInfoList);
+            merge.MergePcieLanes(pcieLaneInfoList, pciePinPairIndexes, MainConnectorRefDes, connectorRefDesHash, boardType);
 
             aLaneGroupComplete = merge.GetASideGroup();
             bLaneGroupComplete = merge.GetBSideGroup();
-            upiRxGroupComplete = merge.GetUpiRxGroup();
-            upiTxGroupComplete = merge.GetUpiTxGroup();
-            otherLaneGroupComplete = merge.GetOtherLaneGroup();
 
             merge.CheckGroupsForMissingLayers(aLaneGroupComplete);
             merge.CheckGroupsForMissingLayers(bLaneGroupComplete);
-            merge.CheckGroupsForMissingLayers(upiRxGroupComplete);
-            merge.CheckGroupsForMissingLayers(upiTxGroupComplete);
-            merge.CheckGroupsForMissingLayers(otherLaneGroupComplete);
 
-            PrintToCSV csvPrint = new PrintToCSV(mlb_directory, mlb_fileName);
             csvPrint.DiffPairLaneGroupsOrdering(aLaneGroupComplete, bLaneGroupComplete);
-            csvPrint.DiffPairLaneGroupsOrdering(upiRxGroupComplete, upiTxGroupComplete);
-            csvPrint.OtherLaneGroupsOrdering(otherLaneGroupComplete);
+
+            if (boardType == "mlb")
+            {
+                clockLanesInfoList = parser.GetClockLaneInfo();
+                upiLanesInfoList = parser.GetUpiLaneInfo();
+                usbLanesInfoList = parser.GetUsbLaneInfo();
+
+                merge.MergeOtherLanes("UPI", upiLanesInfoList);
+                merge.MergeOtherLanes("CLK", clockLanesInfoList);
+                merge.MergeOtherLanes("USB", usbLanesInfoList);
+
+                upiRxGroupComplete = merge.GetUpiRxGroup();
+                upiTxGroupComplete = merge.GetUpiTxGroup();
+                otherLaneGroupComplete = merge.GetOtherLaneGroup();
+
+                merge.CheckGroupsForMissingLayers(upiRxGroupComplete);
+                merge.CheckGroupsForMissingLayers(upiTxGroupComplete);
+                merge.CheckGroupsForMissingLayers(otherLaneGroupComplete);
+
+                csvPrint.DiffPairLaneGroupsOrdering(upiRxGroupComplete, upiTxGroupComplete);
+                csvPrint.OtherLaneGroupsOrdering(otherLaneGroupComplete);
+            }
+
             csvPrint.WriteToCSV();
 
-            mlb_textBox.Text += "************************************************************************ \n";
-            mlb_textBox.Text += "Program is now complete. Open the '__OUTPUT__ParsedLanes.csv' file \n";
-            mlb_textBox.Text += "************************************************************************ \n";
+            boardOutputTextBlock.Text += "************************************************************************ \n";
+            boardOutputTextBlock.Text += "Program is now complete. Open the '__OUTPUT__ParsedLanes.csv' file \n";
+            boardOutputTextBlock.Text += "************************************************************************ \n";
         }
     }
 }

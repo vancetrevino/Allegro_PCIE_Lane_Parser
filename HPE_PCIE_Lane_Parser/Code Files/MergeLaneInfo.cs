@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Allegro_PCIE_Lane_Parser.Class_Files;
+using System.Text.RegularExpressions;
 
 namespace Allegro_PCIE_Lane_Parser.Code_Files
 {
@@ -20,7 +21,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
         List<LaneGroup> upiRxLaneGroupsComplete = new List<LaneGroup>();
         List<LaneGroup> otherLaneGroupsComplete = new List<LaneGroup>();
 
-        public void MergePcieLanes(List<DiffPairLane> pcieLanesInfo, Dictionary<string, int> pinPairIndexes, string[] cpuRefDes, HashSet<string> connectorRefDesHash)
+        public void MergePcieLanes(List<DiffPairLane> pcieLanesInfo, Dictionary<string, int> pinPairIndexes, string[] mainConnRefDes, HashSet<string> connectorRefDesHash, string boardType)
         {
             List<LaneGroup> aSideLanesCpu0 = new List<LaneGroup>();
             List<LaneGroup> aSideLanesCpu1 = new List<LaneGroup>();
@@ -43,24 +44,14 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
                 // Checking if either the start/end pin pair contains the CPU ref des, or if two connectors are connected together. 
                 // Redundancy checks to get all connectors/devices that PCIE lanes are connected to. 
-                if ((cpuRefDes.Any(lane.FullPinPair.Contains)) || (lane.PinPairStart.Contains('J') && lane.PinPairEnd.Contains('J')))
+                if ((mainConnRefDes.Any(lane.FullPinPair.Contains)) || (lane.PinPairStart.Contains('J') && lane.PinPairEnd.Contains('J')))
                 {
-                    if (cpuRefDes.Any(lane.PinPairStart.Contains))
+                    if (mainConnRefDes.Any(lane.PinPairStart.StartsWith))
                     {
                         connPinPair = lane.PinPairEnd;
                         pinToCheck = lane.PinPairEnd;
                     }
-                    else if (cpuRefDes.Any(lane.PinPairEnd.Contains))
-                    {
-                        connPinPair = lane.PinPairStart;
-                        pinToCheck = lane.PinPairStart;
-                    }
-                    else if (connectorRefDesHash.Any(lane.PinPairStart.Contains))
-                    {
-                        connPinPair = lane.PinPairEnd;
-                        pinToCheck = lane.PinPairEnd;
-                    }
-                    else if (connectorRefDesHash.Any(lane.PinPairEnd.Contains))
+                    else if (mainConnRefDes.Any(lane.PinPairEnd.StartsWith))
                     {
                         connPinPair = lane.PinPairStart;
                         pinToCheck = lane.PinPairStart;
@@ -69,6 +60,16 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                     {
                         connPinPair = lane.PinPairEnd;
                         pinToCheck = lane.PinPairEnd;
+                    }
+
+                    // If the board type is a riser, then override the connPinPair 
+                    if (boardType == "riser" && mainConnRefDes.Any(lane.PinPairStart.StartsWith))
+                    {
+                        connPinPair = lane.PinPairStart;
+                    }
+                    else if (boardType == "riser" && mainConnRefDes.Any(lane.PinPairEnd.StartsWith))
+                    {
+                        connPinPair = lane.PinPairEnd;
                     }
 
                     string? capPinToFind = checkPinForCap(lane, pinToCheck);
@@ -105,6 +106,29 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
                     string connector = connPinPair.Split('.')[0];
 
+                    // Prepend extra 0 (zeros) to the pin pair A/B side of the connector.
+                    if (connPinPair.Contains('J'))
+                    {
+                        string connectorPin = connPinPair.Split('.')[1];
+
+                        Regex re = new Regex(@"([A-B]+)(\d+)");
+                        Match result = re.Match(connectorPin);
+                        
+                        //string[] connectorSideSeparators = new String[] { "A", "B" };
+                        //string connectorPinLetter = connectorPin.Split(connectorSideSeparators, StringSplitOptions.RemoveEmptyEntries)[0];
+                        //string connectorPinNumber = connectorPin.Split(connectorSideSeparators, StringSplitOptions.RemoveEmptyEntries)[1];
+
+                        string connectorPinLetter = result.Groups[1].Value;
+                        string connectorPinNumber = result.Groups[2].Value;
+
+                        while (connectorPinNumber.Length < 5)
+                        {
+                            connectorPinNumber = connectorPinNumber.PadLeft(connectorPinNumber.Length + 1, '0');
+                        }
+
+                        connPinPair = connector + "." + connectorPinLetter + connectorPinNumber;
+                    }
+                    
                     LaneGroup completeLaneGroup = new LaneGroup(connector, startingNet, startingLayersandLengths, startingViaCount,
                                                                 connPinPair, endingNet, endingLayersandLengths, endinggViaCount);
 

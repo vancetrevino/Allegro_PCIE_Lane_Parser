@@ -242,10 +242,10 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
             return result;
         }
 
-        public string[] FindCpuRefDes(List<DiffPairLane> diffPairLanes)
+        public string[] FindMainConnectorRefDes(List<DiffPairLane> diffPairLanes, string boardType)
         {
-            Dictionary<string, int> RefDesInstancesCount = new Dictionary<string, int>();
-            string[] CpuRefDes = new string[2];
+            Dictionary<string, int> refDesInstancesCount = new Dictionary<string, int>();
+            string[] mainConnectorRefDes = new string[2];
 
             int highestRefDesCount = 0;
             int nextHighestRefDesCount = 0;
@@ -255,43 +255,61 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 string firstRefDes = diffPairLanes[i].PinPairStart.Split(".")[0];
                 string secondRefDes = diffPairLanes[i].PinPairEnd.Split(".")[0];
 
-                if (firstRefDes.Contains('U') && !RefDesInstancesCount.ContainsKey(firstRefDes))
+                if (refDesInstancesCount.ContainsKey(firstRefDes))
                 {
-                    RefDesInstancesCount.Add(firstRefDes, 1);
+                    refDesInstancesCount[firstRefDes] += 1;
                 }
-                else if (secondRefDes.Contains('U') && !RefDesInstancesCount.ContainsKey(secondRefDes))
+                if (refDesInstancesCount.ContainsKey(secondRefDes))
                 {
-                    RefDesInstancesCount.Add(secondRefDes, 1);
+                    refDesInstancesCount[secondRefDes] += 1;
                 }
-                else if (RefDesInstancesCount.ContainsKey(firstRefDes))
+
+                if (firstRefDes.Contains('U') && !refDesInstancesCount.ContainsKey(firstRefDes))
                 {
-                    RefDesInstancesCount[firstRefDes] += 1;
+                    refDesInstancesCount.Add(firstRefDes, 1);
                 }
-                else if (RefDesInstancesCount.ContainsKey(secondRefDes))
+                if (secondRefDes.Contains('U') && !refDesInstancesCount.ContainsKey(secondRefDes))
                 {
-                    RefDesInstancesCount[secondRefDes] += 1;
+                    refDesInstancesCount.Add(secondRefDes, 1);
+                }
+
+                if (firstRefDes.Contains('J') && !refDesInstancesCount.ContainsKey(firstRefDes))
+                {
+                    refDesInstancesCount.Add(firstRefDes, 1);
+                }
+                if (secondRefDes.Contains('J') && !refDesInstancesCount.ContainsKey(secondRefDes))
+                {
+                    refDesInstancesCount.Add(secondRefDes, 1);
                 }
             }
 
-            foreach (var refDes in RefDesInstancesCount)
+            foreach (var refDes in refDesInstancesCount)
             {
-                if (refDes.Value > nextHighestRefDesCount)
+                if (refDes.Value > highestRefDesCount)
+                {
+                    nextHighestRefDesCount = highestRefDesCount;
+                    mainConnectorRefDes[1] = mainConnectorRefDes[0];
+
+                    highestRefDesCount = refDes.Value;
+                    mainConnectorRefDes[0] = refDes.Key;
+                }
+                else if (refDes.Value >= nextHighestRefDesCount )
                 {
                     nextHighestRefDesCount = refDes.Value;
-                    CpuRefDes[0] = refDes.Key;
-                }
-
-                if (refDes.Value >= highestRefDesCount && refDes.Key != CpuRefDes[0])
-                {
-                    highestRefDesCount = refDes.Value;
-                    CpuRefDes[1] = refDes.Key;
+                    mainConnectorRefDes[1] = refDes.Key;
                 }
             }
 
-            return CpuRefDes;
+            // For Riser boards, there is no need to have a secondary ref des indicator or count
+            if (boardType == "riser")
+            {
+                mainConnectorRefDes[1] = "U0000";
+                nextHighestRefDesCount = 0;
+            }
+            return mainConnectorRefDes;
         }
 
-        public HashSet<string> FindConnectorsAttachedToCpu(List<DiffPairLane> diffPairLanes, string[] cpuRefDes)
+        public HashSet<string> FindConnectorsAttachedToMainConnector(List<DiffPairLane> diffPairLanes, string[] mainConnRefDes)
         {
             HashSet<string> connectorsAttachedToCpu = new HashSet<string>();
 
@@ -300,13 +318,16 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 string firstRefDes = diffPairLanes[i].PinPairStart.Split(".")[0];
                 string secondRefDes = diffPairLanes[i].PinPairEnd.Split(".")[0];
 
-                if (firstRefDes.Contains('J') && cpuRefDes.Any(secondRefDes.Contains))
+                if (mainConnRefDes[0] != null)
                 {
-                    connectorsAttachedToCpu.Add(firstRefDes);
-                }
-                else if (secondRefDes.Contains('J') && cpuRefDes.Any(firstRefDes.Contains))
-                {
-                    connectorsAttachedToCpu.Add(secondRefDes);
+                    if (firstRefDes.Contains('J') && mainConnRefDes.Any(secondRefDes.StartsWith))
+                    {
+                        connectorsAttachedToCpu.Add(firstRefDes);
+                    }
+                    else if (secondRefDes.Contains('J') && mainConnRefDes.Any(firstRefDes.StartsWith))
+                    {
+                        connectorsAttachedToCpu.Add(secondRefDes);
+                    }
                 }
             }
 

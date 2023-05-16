@@ -10,13 +10,13 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 {
     internal class PrintToCSV
     {
-        private string mlb_directory { get; set; }
-        private string mlb_file { get; set; }
+        private string boardDirectory { get; set; }
+        private string boardFileName { get; set; }
 
-        public PrintToCSV (string mlb_directory, string mlb_file)
+        public PrintToCSV (string boardDirectory, string boardFileName)
         {
-            this.mlb_directory = mlb_directory;
-            this.mlb_file = mlb_file;
+            this.boardDirectory = boardDirectory;
+            this.boardFileName = boardFileName;
         }
 
         private List<List<string>> outputList = new List<List<string>>();
@@ -33,9 +33,9 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
         public void ChangeHeaderGroup(List<string> headers, string connectorRefDesGroup, ref string previousRefDes)
         {
-            if (previousRefDes != connectorRefDesGroup)
+            if (previousRefDes != connectorRefDesGroup.Split('.')[0])
             {
-                previousRefDes = connectorRefDesGroup;
+                previousRefDes = connectorRefDesGroup.Split('.')[0];
                 outputList.Add(headers);
             }
         }
@@ -99,14 +99,14 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 {
                     laneA = aLaneGroupComplete[primaryIndex];
                     laneB = bLaneGroupComplete[secondaryIndex];
-                    connectorRefDesGroup = laneA.GroupName;
+                    connectorRefDesGroup = laneA.PinPair;
                     fewerLanesFlag = "LANE_B";
                 }
                 else
                 {
                     laneA = bLaneGroupComplete[secondaryIndex];
                     laneB = aLaneGroupComplete[primaryIndex];
-                    connectorRefDesGroup = laneB.GroupName;
+                    connectorRefDesGroup = laneB.PinPair;
                     fewerLanesFlag = "LANE_A";
                 }
 
@@ -258,11 +258,11 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
         public void WriteToCSV()
         {
-            string outputFile = @"\__OUTPUT__ParsedLanes_" + mlb_file + ".csv";
-            using (var writer = new StreamWriter(mlb_directory + outputFile))
+            string outputFile = @"\__OUTPUT__ParsedLanes_" + boardFileName + ".csv";
+            using (var writer = new StreamWriter(boardDirectory + outputFile))
             {
                 // Write the board file name to begin
-                string boardFileNameHeader = "Board File:, " + mlb_file + ",";
+                string boardFileNameHeader = "Board File:, " + boardFileName + ",";
                 writer.Write(boardFileNameHeader);
 
                 foreach (var row in outputList)

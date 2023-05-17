@@ -44,7 +44,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
                 // Checking if either the start/end pin pair contains the CPU ref des, or if two connectors are connected together. 
                 // Redundancy checks to get all connectors/devices that PCIE lanes are connected to. 
-                if ((mainConnRefDes.Any(lane.FullPinPair.Contains)) || (lane.PinPairStart.Contains('J') && lane.PinPairEnd.Contains('J')))
+                if ((mainConnRefDes.Any(lane.PinPairStart.StartsWith)) || (mainConnRefDes.Any(lane.PinPairEnd.StartsWith)) || (lane.PinPairStart.Contains('J') && lane.PinPairEnd.Contains('J')))
                 {
                     if (mainConnRefDes.Any(lane.PinPairStart.StartsWith))
                     {
@@ -91,7 +91,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                             {
                                 connPinPair = pcieLanesInfo[index].PinPairEnd;
                             }
-                            else
+                            else if (boardType != "riser")
                             {
                                 connPinPair = pcieLanesInfo[index].PinPairStart;
                             }
@@ -113,10 +113,6 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
                         Regex re = new Regex(@"([A-B]+)(\d+)");
                         Match result = re.Match(connectorPin);
-                        
-                        //string[] connectorSideSeparators = new String[] { "A", "B" };
-                        //string connectorPinLetter = connectorPin.Split(connectorSideSeparators, StringSplitOptions.RemoveEmptyEntries)[0];
-                        //string connectorPinNumber = connectorPin.Split(connectorSideSeparators, StringSplitOptions.RemoveEmptyEntries)[1];
 
                         string connectorPinLetter = result.Groups[1].Value;
                         string connectorPinNumber = result.Groups[2].Value;
@@ -265,7 +261,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
         {
             string? currentGroupName = "";
             var lastLane = laneGroup.Last();
-            List<LaneGroup> tempGroup = new List<LaneGroup>();
+            List<LaneGroup> tempLaneGroup = new List<LaneGroup>();
             HashSet<string> firstLayerHashSet = new HashSet<string>();
             HashSet<string> secondLayerHashSet = new HashSet<string>();
 
@@ -274,7 +270,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 LaneGroup lane = laneGroup[i];
                 LaneGroup nextLane = laneGroup[i + 1];
 
-                tempGroup.Add(lane);
+                tempLaneGroup.Add(lane);
 
                 foreach (var layer in lane.FirstLayerAndLengths)
                 {
@@ -288,16 +284,16 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
                 if (nextLane.GroupName != currentGroupName || nextLane == lastLane)
                 {
-                    // In the event that the next lane is the last lane in the sequence, add the last lane to the tempGroup
-                    if (nextLane == lastLane) { tempGroup.Add(lastLane); }
-                    InsertMissingLayersToGroup(tempGroup, firstLayerHashSet, secondLayerHashSet);
+                    // In the event that the next lane is the last lane in the sequence, add the last lane to the tempLaneGroup
+                    if (nextLane == lastLane) { tempLaneGroup.Add(lastLane); }
+                    InsertMissingLayersToGroup(tempLaneGroup, firstLayerHashSet, secondLayerHashSet);
 
                     currentGroupName = nextLane.GroupName;
 
-                    // Ignore the very first iteration, and execute on all the others
+                    // Do not clear on the very first iteration, and execute a clear on all the others
                     if (i != 0)
                     {
-                        tempGroup.Clear();
+                        tempLaneGroup.Clear();
                         firstLayerHashSet.Clear();
                         secondLayerHashSet.Clear();
                     }
@@ -305,23 +301,28 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
             }
         }
 
-        private void InsertMissingLayersToGroup(List<LaneGroup> tempGroup, HashSet<string> firstLayerHashSet, HashSet<string> secondLayerHashSet)
+        private void InsertMissingLayersToGroup(List<LaneGroup> tempLaneGroup, HashSet<string> firstLayerHashSet, HashSet<string> secondLayerHashSet)
         {
-            foreach (var temp in tempGroup)
+            foreach (var lane in tempLaneGroup)
             {
-                foreach (var first in firstLayerHashSet)
+                foreach (var firstLayer in firstLayerHashSet)
                 {
-                    if (!temp.FirstLayerAndLengths.ContainsKey(first))
+                    if (!lane.FirstLayerAndLengths.ContainsKey(firstLayer))
                     {
-                        temp.FirstLayerAndLengths.Add(first, "0");
+                        lane.FirstLayerAndLengths.Add(firstLayer, "0");
                     }
                 }
 
-                foreach (var second in secondLayerHashSet)
+                foreach (var secondLayer in secondLayerHashSet)
                 {
-                    if (!temp.SecondLayerAndLengths.ContainsKey(second))
+                    if (!lane.SecondLayerAndLengths.ContainsKey(secondLayer))
                     {
-                        temp.SecondLayerAndLengths.Add(second, "0");
+                        lane.SecondLayerAndLengths.Add(secondLayer, "0");
+                        
+                        if (secondLayerHashSet.Count > 0 && lane.SecondNet == "")
+                        {
+                            lane.SecondNet = "-";
+                        }
                     }
                 }
             }

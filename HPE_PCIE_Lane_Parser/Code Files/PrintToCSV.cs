@@ -91,7 +91,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 string connectorRefDesGroup = "";
                 string fewerLanesFlag = "LANE_B";
 
-                // Verify that which List of lanes contains a larger count
+                // Verify which List of lanes contains a larger count
                 // This is to prevent the edge case if certain lanes aren't connected to their endpoint. 
                 // Using primary and secondary indexes to move through each list.
                 // Secondary index will only increase if all lane checks pass.

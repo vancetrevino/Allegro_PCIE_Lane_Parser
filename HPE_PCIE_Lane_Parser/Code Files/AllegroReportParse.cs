@@ -301,7 +301,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
             }
 
             // For Riser boards, there is no need to have a secondary ref des indicator or count
-            if (boardType == "riser")
+            if (boardType == "riser" && highestRefDesCount != nextHighestRefDesCount)
             {
                 mainConnectorRefDes[1] = "U0000";
                 nextHighestRefDesCount = 0;

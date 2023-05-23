@@ -138,7 +138,7 @@ namespace Allegro_PCIE_Lane_Parser
 
         private void AnalyzeBoardAndPrintCsvFile(ref TextBlock boardOutputTextBlock, string boardType, string boardDirectory, string boardFileName)
         {
-            boardOutputTextBlock.Text += "------------------------------------------------------------------------ \n\n";
+            boardOutputTextBlock.Text = "------------------------------------------------------------------------ \n\n";
             boardOutputTextBlock.Text += "Now analyzing all of the generated Allegro Reports to parse the lanes. \n";
             // Parse the generated Allegro reports
             AllegroReportParse parser = new AllegroReportParse(viaReportLocation, etchLengthReportLocation, pinPairReportLocation);

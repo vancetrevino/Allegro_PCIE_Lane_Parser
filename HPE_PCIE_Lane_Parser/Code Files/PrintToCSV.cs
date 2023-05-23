@@ -110,7 +110,13 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                     fewerLanesFlag = "LANE_A";
                 }
 
-                BeginHeaderAndLists(tempList, headers, connectorRefDesGroup);
+                if ((laneA.GroupName.Contains("UPI") || laneB.GroupName.Contains("UPI")))
+                {
+                    connectorRefDesGroup = "UPI";
+                }
+    
+
+                    BeginHeaderAndLists(tempList, headers, connectorRefDesGroup);
 
                 // Check to see if the A side and B side lanes match each other: net name and port-number wise.
                 // AKA: Both are referring to the same lane and port number. --> P5E2A<0>_TX and P5E2A<0>_RX

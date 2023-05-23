@@ -242,6 +242,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
             return result;
         }
 
+        // Find either the main CPU or Riser Gold Finger Ref Des
         public string[] FindMainConnectorRefDes(List<DiffPairLane> diffPairLanes, string boardType)
         {
             Dictionary<string, int> refDesInstancesCount = new Dictionary<string, int>();

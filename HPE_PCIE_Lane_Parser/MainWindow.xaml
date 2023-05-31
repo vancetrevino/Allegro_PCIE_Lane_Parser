@@ -17,7 +17,7 @@
                 <TabItem>
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Motherboard" Foreground="Blue" />
+                            <TextBlock Text="Motherboard" Foreground="Blue" FontSize="16" />
                         </StackPanel>
                     </TabItem.Header>
 
@@ -40,7 +40,7 @@
                         <Button Name="mlb_btnOpenFile" Click="mlb_btnOpenFile_Click" DockPanel.Dock="Right" Grid.Column="1" Grid.Row="1">Open File</Button>
 
                         <Border BorderThickness="1" BorderBrush="#FF8E8F94" Grid.Column="0" Grid.Row="2" Margin="0,10,10,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                            <ScrollViewer>
+                            <ScrollViewer x:Name="mlb_scrollViewer">
                                 <TextBlock x:Name="mlb_textBlock" HorizontalAlignment="Stretch"  TextWrapping="Wrap" VerticalAlignment="Stretch" Padding="3,0,0,0" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Visible">
                                     <Run Text="Welcome to the HPE PCIE lane parser tool."/><LineBreak/>
                                     <Run Text="This tool will parse an Allegro board file, and find all PCIE lanes connected from the CPU to each connector on the board."/><LineBreak/>
@@ -72,7 +72,7 @@
                 <TabItem>
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Riser" Foreground="Green" />
+                            <TextBlock Text="Riser" Foreground="Green" FontSize="16" />
                         </StackPanel>
                     </TabItem.Header>
 

@@ -54,18 +54,6 @@ namespace Allegro_PCIE_Lane_Parser
             InitializeComponent();
         }
 
-        //public string mlb_textBlockValue
-        //{
-        //    get {  return mlb_textBlock.Text; }
-        //    set { mlb_textBlock.Text = value; }
-        //}
-
-        //public string riser_textBlockValue
-        //{
-        //    get { return riser_textBlock.Text; }
-        //    set { riser_textBlock.Text = value; }
-        //}
-
         private void mlb_settings_Click(object sender, RoutedEventArgs e)
         {
 
@@ -125,7 +113,7 @@ namespace Allegro_PCIE_Lane_Parser
                 if (!reportCheck)
                 {
                     boardReports.GenerateAllReports(boardFileLocation.Text);
-                    boardReports.GeneratingStatus();
+                    boardReports.GeneratingStatus(mlb_scrollViewer);
                 }
 
                 (viaReportLocation, etchLengthReportLocation, pinPairReportLocation) = boardReports.GetReportLocations();

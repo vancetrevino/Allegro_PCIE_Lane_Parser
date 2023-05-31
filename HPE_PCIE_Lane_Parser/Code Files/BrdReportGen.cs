@@ -129,13 +129,14 @@ namespace Allegro_PCIE_Lane_Parser
             boardTextBlock.Text += "All reports are now being generated in the background. Please check the folder of your board file to ensure completion. \n";
         }
 
-        public async void GeneratingStatus()
+        public async void GeneratingStatus(ScrollViewer scrollViewer)
         {
             while (!pinPairFlag)
             {
                 await Task.Delay(2000);
                 CurrentReportStatus();
-                boardTextBlock.Text += "  --- Generating \n";
+                boardTextBlock.Text += "  --- Generating reports. Please wait.\n";
+                scrollViewer.ScrollToBottom();
             }
 
             boardTextBlock.Text += "**** All necessary reports have been generated. Click on 'Analyze Board & Start' to move to the next step. ****\n";

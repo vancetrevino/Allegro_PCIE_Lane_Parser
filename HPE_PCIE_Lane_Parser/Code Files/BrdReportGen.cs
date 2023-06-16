@@ -8,6 +8,7 @@ using System.Windows;
 using System.Diagnostics;
 using System.Threading;
 using System.ComponentModel;
+using System.Windows.Controls;
 
 namespace Allegro_PCIE_Lane_Parser
 {
@@ -25,15 +26,17 @@ namespace Allegro_PCIE_Lane_Parser
         private string etchLenReportLocation = "";
         private string pinPairReportLocation = "";
 
-        MainWindow mw = (MainWindow)Application.Current.MainWindow;
-
         private string currentBrdPath;
         private string cadenceToolsPath;
+        private TextBlock boardTextBlock;
+        private Button analyzeBoardButton;
 
-        public BrdReportGen(string path, string toolsPath)
+        public BrdReportGen(string path, string toolsPath, Button analyzeButton, TextBlock textBlock)
         {
             currentBrdPath = path;
             cadenceToolsPath = toolsPath;
+            boardTextBlock = textBlock;
+            analyzeBoardButton = analyzeButton;
         }
 
         private void CurrentReportStatus()
@@ -55,49 +58,49 @@ namespace Allegro_PCIE_Lane_Parser
         {
             CurrentReportStatus();
 
-            mw.mlb_textBoxValue += "Now searching for the following Allegro generated reports (Pin pair, Via list, Etch length) \n";
+            boardTextBlock.Text += "Now searching for the following Allegro generated reports (Pin pair, Via list, Etch length) \n";
 
             // Check if each file exist
             if (pinPairFlag)
             {
-                mw.mlb_textBoxValue += " - Pin pair report has been found \n";
+                boardTextBlock.Text += " - Pin pair report has been found \n";
             }
             else
             {
-                mw.mlb_textBoxValue += " - Pin pair report has NOT been found \n";
+                boardTextBlock.Text += " - Pin pair report has NOT been found \n";
             }
 
             if (viaFlag)
             {
                 viaFlag = true;
-                mw.mlb_textBoxValue += " - Via list report has been found \n";
+                boardTextBlock.Text += " - Via list report has been found \n";
             }
             else
             {
-                mw.mlb_textBoxValue += " - Via list report has NOT been found \n";
+                boardTextBlock.Text += " - Via list report has NOT been found \n";
             }
 
             if (etchLengthFlag)
             {
                 etchLengthFlag = true;
-                mw.mlb_textBoxValue += " - Etch length report has been found \n";
+                boardTextBlock.Text += " - Etch length report has been found \n";
             }
             else
             {
-                mw.mlb_textBoxValue += " - Etch length report has NOT been found \n";
+                boardTextBlock.Text += " - Etch length report has NOT been found \n";
             }
 
             // If one or more files is missing, begin generating files. Otherwise move on to next step. 
             if (pinPairFlag && viaFlag && etchLengthFlag)
             {
-                mw.mlb_textBoxValue += "**** All necessary reports have been found. You can click on 'Analyze Board & Start' to move to the next step. ****\n";
-                mw.mlb_analyzeBoard.IsEnabled = true;
+                boardTextBlock.Text += "**** All necessary reports have been found. You can click on 'Analyze Board & Start' to move to the next step. ****\n";
+                analyzeBoardButton.IsEnabled = true;
             }
             else
             {
-                mw.mlb_textBoxValue += "------------------------------------------------------------------------ \n";
-                mw.mlb_textBoxValue += "One or more files are missing. Now beginning to generate all reports. \n";
-                //mw.mlb_textBoxValue += "One or more files are missing. Click 'Start/Run' to generate all reports. \n";
+                boardTextBlock.Text += "------------------------------------------------------------------------ \n";
+                boardTextBlock.Text += "One or more files are missing. Now beginning to generate all reports. \n";
+                //boardTextBlock.Text += "One or more files are missing. Click 'Start/Run' to generate all reports. \n";
             }
 
             return (pinPairFlag && viaFlag && etchLengthFlag);
@@ -116,27 +119,28 @@ namespace Allegro_PCIE_Lane_Parser
                 $@"{reportCmd} -v vialist_net ""{brdFile}"" ""{viaListReportLocation}""",
             };
 
-            mw.mlb_textBoxValue += "------------------------------------------------------------------------ \n";
-            mw.mlb_textBoxValue += "Now generating the via list report. \n";
-            mw.mlb_textBoxValue += "Now generating the etch length report. \n";
-            mw.mlb_textBoxValue += "Now generating the pin pair report -- This generation may take a while. \n";
+            boardTextBlock.Text += "------------------------------------------------------------------------ \n";
+            boardTextBlock.Text += "Now generating the via list report. \n";
+            boardTextBlock.Text += "Now generating the etch length report. \n";
+            boardTextBlock.Text += "Now generating the pin pair report -- This generation may take a while. \n";
 
             ProcessStart(commandsArr);
 
-            mw.mlb_textBoxValue += "All reports are now being generated in the background. Please check the folder of your board file to ensure completion. \n";
+            boardTextBlock.Text += "All reports are now being generated in the background. Please check the folder of your board file to ensure completion. \n";
         }
 
-        public async void GeneratingStatus()
+        public async void GeneratingStatus(ScrollViewer scrollViewer)
         {
             while (!pinPairFlag)
             {
                 await Task.Delay(2000);
                 CurrentReportStatus();
-                mw.mlb_textBoxValue += "  --- Generating \n";
+                boardTextBlock.Text += "  --- Generating reports. Please wait.\n";
+                scrollViewer.ScrollToBottom();
             }
 
-            mw.mlb_textBoxValue += "**** All necessary reports have been generated. Click on 'Analyze Board & Start' to move to the next step. ****\n";
-            mw.mlb_analyzeBoard.IsEnabled = true;
+            boardTextBlock.Text += "**** All necessary reports have been generated. Click on 'Analyze Board & Start' to move to the next step. ****\n";
+            analyzeBoardButton.IsEnabled = true;
         }
 
         public (string, string, string) GetReportLocations()

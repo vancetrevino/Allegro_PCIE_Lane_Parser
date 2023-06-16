@@ -10,13 +10,13 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 {
     internal class PrintToCSV
     {
-        private string mlb_directory { get; set; }
-        private string mlb_file { get; set; }
+        private string boardDirectory { get; set; }
+        private string boardFileName { get; set; }
 
-        public PrintToCSV (string mlb_directory, string mlb_file)
+        public PrintToCSV (string boardDirectory, string boardFileName)
         {
-            this.mlb_directory = mlb_directory;
-            this.mlb_file = mlb_file;
+            this.boardDirectory = boardDirectory;
+            this.boardFileName = boardFileName;
         }
 
         private List<List<string>> outputList = new List<List<string>>();
@@ -33,9 +33,9 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
         public void ChangeHeaderGroup(List<string> headers, string connectorRefDesGroup, ref string previousRefDes)
         {
-            if (previousRefDes != connectorRefDesGroup)
+            if (previousRefDes != connectorRefDesGroup.Split('.')[0])
             {
-                previousRefDes = connectorRefDesGroup;
+                previousRefDes = connectorRefDesGroup.Split('.')[0];
                 outputList.Add(headers);
             }
         }
@@ -91,7 +91,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 string connectorRefDesGroup = "";
                 string fewerLanesFlag = "LANE_B";
 
-                // Verify that which List of lanes contains a larger count
+                // Verify which List of lanes contains a larger count
                 // This is to prevent the edge case if certain lanes aren't connected to their endpoint. 
                 // Using primary and secondary indexes to move through each list.
                 // Secondary index will only increase if all lane checks pass.
@@ -99,18 +99,24 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 {
                     laneA = aLaneGroupComplete[primaryIndex];
                     laneB = bLaneGroupComplete[secondaryIndex];
-                    connectorRefDesGroup = laneA.GroupName;
+                    connectorRefDesGroup = laneA.PinPair;
                     fewerLanesFlag = "LANE_B";
                 }
                 else
                 {
                     laneA = bLaneGroupComplete[secondaryIndex];
                     laneB = aLaneGroupComplete[primaryIndex];
-                    connectorRefDesGroup = laneB.GroupName;
+                    connectorRefDesGroup = laneB.PinPair;
                     fewerLanesFlag = "LANE_A";
                 }
 
-                BeginHeaderAndLists(tempList, headers, connectorRefDesGroup);
+                if ((laneA.GroupName.Contains("UPI") || laneB.GroupName.Contains("UPI")))
+                {
+                    connectorRefDesGroup = "UPI";
+                }
+    
+
+                    BeginHeaderAndLists(tempList, headers, connectorRefDesGroup);
 
                 // Check to see if the A side and B side lanes match each other: net name and port-number wise.
                 // AKA: Both are referring to the same lane and port number. --> P5E2A<0>_TX and P5E2A<0>_RX
@@ -258,11 +264,11 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
         public void WriteToCSV()
         {
-            string outputFile = @"\__OUTPUT__ParsedLanes_" + mlb_file + ".csv";
-            using (var writer = new StreamWriter(mlb_directory + outputFile))
+            string outputFile = @"\__OUTPUT__ParsedLanes_" + boardFileName + ".csv";
+            using (var writer = new StreamWriter(boardDirectory + outputFile))
             {
                 // Write the board file name to begin
-                string boardFileNameHeader = "Board File:, " + mlb_file + ",";
+                string boardFileNameHeader = "Board File:, " + boardFileName + ",";
                 writer.Write(boardFileNameHeader);
 
                 foreach (var row in outputList)

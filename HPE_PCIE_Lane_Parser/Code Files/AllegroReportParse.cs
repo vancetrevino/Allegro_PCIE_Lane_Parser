@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace Allegro_PCIE_Lane_Parser.Code_Files
 {
@@ -14,11 +15,14 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
         private string viaListReportLocation { get; set; }
         private string etchLenReportLocation { get; set; }
         private string pinPairReportLocation { get; set; }
-        public AllegroReportParse(string viaListLocation, string etchLenLocation, string pinPairLocation)
+        private TextBlock boardTextBlock;
+
+        public AllegroReportParse(string viaListLocation, string etchLenLocation, string pinPairLocation, TextBlock boardOutputTextBlock)
         {
             viaListReportLocation = viaListLocation;
             etchLenReportLocation = etchLenLocation;
             pinPairReportLocation = pinPairLocation;
+            boardTextBlock = boardOutputTextBlock;
         }
 
         private string pcieNetIdentifier = "P5E";
@@ -41,122 +45,148 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
         // Method to read in the pin pair report and organize diff pairs in the separate lists
         public void ParsePinPairReport()
         {
-            // These CSV report files are comma (,) delimited
-            using (var reader = new StreamReader(pinPairReportLocation))
+            try
             {
-                while (!reader.EndOfStream)
+                // These CSV report files are comma (,) delimited
+                using (var reader = new StreamReader(pinPairReportLocation))
                 {
-                    var line = reader.ReadLine();
-
-                    // Values should be split into a 3 bit array
-                    // [Net name, Pin pair, Total Length]
-                    var values = line.Split(',');
-
-                    if (values.Count() > 2)
+                    while (!reader.EndOfStream)
                     {
-                        string netName = values[0];
-                        string pinPair = values[1];
-                        string totalLength = values[2];
+                        var line = reader.ReadLine();
 
-                        if (netName.Contains(positiveDiffPair) || netName.Contains(negativeDiffPair))
+                        // Values should be split into a 3 bit array
+                        // [Net name, Pin pair, Total Length]
+                        var values = line.Split(',');
+
+                        if (values.Count() > 2)
                         {
-                            // Check for PCIE lane diff pair and save it into list
-                            if (netName.Contains(pcieNetIdentifier))
-                            {
-                                DiffPairLane pcieDiffPair = new DiffPairLane(netName, pinPair, totalLength);
-                                pcieLanesInfo.Add(pcieDiffPair);
-                            }
+                            string netName = values[0];
+                            string pinPair = values[1];
+                            string totalLength = values[2];
 
-                            // Continue parse and check for other diff pairs (clk, usb, upi)
-                            else if (netName.Contains(clockNetIdentifier))
+                            if (netName.Contains(positiveDiffPair) || netName.Contains(negativeDiffPair))
                             {
-                                DiffPairLane clockDiffPair = new DiffPairLane(netName, pinPair, totalLength);
-                                var clockLane = clockLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
-                                if (clockLane == null)
+                                // Check for PCIE lane diff pair and save it into list
+                                if (netName.Contains(pcieNetIdentifier))
                                 {
-                                    clockLanesInfo.Add(clockDiffPair);
+                                    DiffPairLane pcieDiffPair = new DiffPairLane(netName, pinPair, totalLength);
+                                    pcieLanesInfo.Add(pcieDiffPair);
                                 }
-                            }
-                            else if (netName.Contains(upiNetIdentifier))
-                            {
-                                DiffPairLane upiDiffPair = new DiffPairLane(netName, pinPair, totalLength);
-                                upiLanesInfo.Add(upiDiffPair);
-                            }
-                            else if (netName.Contains(usbNetIdentifier))
-                            {
-                                DiffPairLane usbDiffPair = new DiffPairLane(netName, pinPair, totalLength);
-                                var usbLane = usbLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
-                                if (usbLane == null)
+
+                                // Continue parse and check for other diff pairs (clk, usb, upi)
+                                else if (netName.Contains(clockNetIdentifier))
                                 {
-                                    usbLanesInfo.Add(usbDiffPair);
+                                    DiffPairLane clockDiffPair = new DiffPairLane(netName, pinPair, totalLength);
+                                    var clockLane = clockLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                    if (clockLane == null)
+                                    {
+                                        clockLanesInfo.Add(clockDiffPair);
+                                    }
+                                }
+                                else if (netName.Contains(upiNetIdentifier))
+                                {
+                                    DiffPairLane upiDiffPair = new DiffPairLane(netName, pinPair, totalLength);
+                                    upiLanesInfo.Add(upiDiffPair);
+                                }
+                                else if (netName.Contains(usbNetIdentifier))
+                                {
+                                    DiffPairLane usbDiffPair = new DiffPairLane(netName, pinPair, totalLength);
+                                    var usbLane = usbLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                    if (usbLane == null)
+                                    {
+                                        usbLanesInfo.Add(usbDiffPair);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+            catch (IOException)
+            {
+                PrintHeaderToTextBlock("ERROR DETECTED");
+                PrintIOExceptionToTextBlock(pinPairReportLocation);
+            }
+            catch (Exception ex)
+            {
+                PrintHeaderToTextBlock("ERROR DETECTED");
+                boardTextBlock.Text += ex.Message;
+            }
         }
 
         public void ParseLengthByLayerReport()
         {
-            // These CSV report files are comma (,) delimited
-            using (var reader = new StreamReader(etchLenReportLocation))
+            try
             {
-                while (!reader.EndOfStream)
+                // These CSV report files are comma (,) delimited
+                using (var reader = new StreamReader(etchLenReportLocation))
                 {
-                    var line = reader.ReadLine();
-
-                    // Values should be split into a 3 bit array
-                    // [Net name, Pin pair, Total Length]
-                    var values = line.Split(',');
-
-                    if (values.Count() > 2)
+                    while (!reader.EndOfStream)
                     {
-                        string netName = values[0];
-                        string layer = values[1];
-                        string length = values[2];
+                        var line = reader.ReadLine();
 
+                        // Values should be split into a 3 bit array
+                        // [Net name, Pin pair, Total Length]
+                        var values = line.Split(',');
 
-                        if (netName.Contains(positiveDiffPair) || netName.Contains(negativeDiffPair))
+                        if (values.Count() > 2)
                         {
-                            // Check for PCIE lane diff pair and save it into list
-                            if (netName.Contains(pcieNetIdentifier))
-                            {
-                                var pcieLane = pcieLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
-                                if (pcieLane != null)
-                                {
-                                    pcieLane.LayerAndLengths.Add(layer, length);
-                                }
-                            }
+                            string netName = values[0];
+                            string layer = values[1];
+                            string length = values[2];
 
-                            // Continue parse and check for other diff pairs (clk, usb, upi)
-                            else if (netName.Contains(clockNetIdentifier))
+
+                            if (netName.Contains(positiveDiffPair) || netName.Contains(negativeDiffPair))
                             {
-                                var clockLane = clockLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
-                                if (clockLane != null)
+                                // Check for PCIE lane diff pair and save it into list
+                                if (netName.Contains(pcieNetIdentifier))
                                 {
-                                    clockLane.LayerAndLengths.Add(layer, length);
+                                    var pcieLane = pcieLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                    if (pcieLane != null)
+                                    {
+                                        pcieLane.LayerAndLengths.Add(layer, length);
+                                    }
                                 }
-                            }
-                            else if (netName.Contains(upiNetIdentifier))
-                            {
-                                var upiLane = upiLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
-                                if (upiLane != null)
+
+                                // Continue parse and check for other diff pairs (clk, usb, upi)
+                                else if (netName.Contains(clockNetIdentifier))
                                 {
-                                    upiLane.LayerAndLengths.Add(layer, length);
+                                    var clockLane = clockLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                    if (clockLane != null)
+                                    {
+                                        clockLane.LayerAndLengths.Add(layer, length);
+                                    }
                                 }
-                            }
-                            else if (netName.Contains(usbNetIdentifier))
-                            {
-                                var usbLane = usbLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
-                                if (usbLane != null)
+                                else if (netName.Contains(upiNetIdentifier))
                                 {
-                                    usbLane.LayerAndLengths.Add(layer, length);
+                                    var upiLane = upiLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                    if (upiLane != null)
+                                    {
+                                        upiLane.LayerAndLengths.Add(layer, length);
+                                    }
+                                }
+                                else if (netName.Contains(usbNetIdentifier))
+                                {
+                                    var usbLane = usbLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                    if (usbLane != null)
+                                    {
+                                        usbLane.LayerAndLengths.Add(layer, length);
+                                    }
                                 }
                             }
                         }
                     }
                 }
+            }
+            catch (IOException)
+            {
+                PrintHeaderToTextBlock("ERROR DETECTED");
+                PrintIOExceptionToTextBlock(etchLenReportLocation);
+            }
+            catch (Exception ex)
+            {
+                PrintHeaderToTextBlock("ERROR DETECTED");
+                boardTextBlock.Text += ex.Message;
             }
         }
 
@@ -164,63 +194,76 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
         public void ParseViaReport()
         {
-            // These CSV report files are comma (,) delimited
-            using (var reader = new StreamReader(viaListReportLocation))
+            try
             {
-                while (!reader.EndOfStream)
+                // These CSV report files are comma (,) delimited
+                using (var reader = new StreamReader(viaListReportLocation))
                 {
-                    var line = reader.ReadLine();
-
-                    // Values should be split into a 3 bit array
-                    // [Net name, Pin pair, Total Length]
-                    var values = line.Split(',');
-
-                    if (values.Count() > 2)
+                    while (!reader.EndOfStream)
                     {
-                        string netName = values[0];
-                        string vias = values[1];
+                        var line = reader.ReadLine();
 
+                        // Values should be split into a 3 bit array
+                        // [Net name, Pin pair, Total Length]
+                        var values = line.Split(',');
 
-                        if (netName.Contains(positiveDiffPair) || netName.Contains(negativeDiffPair))
+                        if (values.Count() > 2)
                         {
-                            // Check for PCIE lane diff pair and save it into list
-                            if (netName.Contains(pcieNetIdentifier))
-                            {
-                                var pcieLane = pcieLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
-                                if (pcieLane != null)
-                                {
-                                    pcieLane.ViaCount = vias;
-                                }
-                            }
+                            string netName = values[0];
+                            string vias = values[1];
 
-                            // Continue parse and check for other diff pairs (clk, usb, etc)
-                            else if (netName.Contains(clockNetIdentifier))
+
+                            if (netName.Contains(positiveDiffPair) || netName.Contains(negativeDiffPair))
                             {
-                                var clockLane = clockLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
-                                if (clockLane != null)
+                                // Check for PCIE lane diff pair and save it into list
+                                if (netName.Contains(pcieNetIdentifier))
                                 {
-                                    clockLane.ViaCount = vias;
+                                    var pcieLane = pcieLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                    if (pcieLane != null)
+                                    {
+                                        pcieLane.ViaCount = vias;
+                                    }
                                 }
-                            }
-                            else if (netName.Contains(upiNetIdentifier))
-                            {
-                                var upiLane = upiLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
-                                if (upiLane != null)
+
+                                // Continue parse and check for other diff pairs (clk, usb, etc)
+                                else if (netName.Contains(clockNetIdentifier))
                                 {
-                                    upiLane.ViaCount = vias;
+                                    var clockLane = clockLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                    if (clockLane != null)
+                                    {
+                                        clockLane.ViaCount = vias;
+                                    }
                                 }
-                            }
-                            else if (netName.Contains(usbNetIdentifier))
-                            {
-                                var usbLane = usbLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
-                                if (usbLane != null)
+                                else if (netName.Contains(upiNetIdentifier))
                                 {
-                                    usbLane.ViaCount = vias;
+                                    var upiLane = upiLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                    if (upiLane != null)
+                                    {
+                                        upiLane.ViaCount = vias;
+                                    }
+                                }
+                                else if (netName.Contains(usbNetIdentifier))
+                                {
+                                    var usbLane = usbLanesInfo.FirstOrDefault(obj => obj.NetName.Contains(netName), null);
+                                    if (usbLane != null)
+                                    {
+                                        usbLane.ViaCount = vias;
+                                    }
                                 }
                             }
                         }
                     }
                 }
+            }
+            catch (IOException)
+            {
+                PrintHeaderToTextBlock("ERROR DETECTED");
+                PrintIOExceptionToTextBlock(viaListReportLocation); 
+            }
+            catch (Exception ex)
+            {
+                PrintHeaderToTextBlock("ERROR DETECTED");
+                boardTextBlock.Text += ex.Message;
             }
         }
 
@@ -353,6 +396,21 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
         public List<DiffPairLane> GetUsbLaneInfo()
         {
             return usbLanesInfo;
+        }
+
+        public void PrintHeaderToTextBlock(string message)
+        {
+            boardTextBlock.Text = "************************************************************************ \n";
+            boardTextBlock.Text += message + " \n";
+            boardTextBlock.Text += "************************************************************************ \n";
+            
+        }
+
+        public void PrintIOExceptionToTextBlock(string reportLocation)
+        {
+            boardTextBlock.Text += "The application cannot access the following file because it is open or being used by another precess. \n";
+            boardTextBlock.Text += reportLocation + "\n";
+            boardTextBlock.Text += "Please close the file " + reportLocation + " and rerun the application.\n\n";
         }
     }
 }

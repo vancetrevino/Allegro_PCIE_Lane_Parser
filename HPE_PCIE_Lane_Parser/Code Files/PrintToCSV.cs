@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Allegro_PCIE_Lane_Parser.Class_Files;
+using System.Windows.Controls;
 
 namespace Allegro_PCIE_Lane_Parser.Code_Files
 {
@@ -12,11 +13,13 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
     {
         private string boardDirectory { get; set; }
         private string boardFileName { get; set; }
+        private TextBlock boardTextBlock;
 
-        public PrintToCSV (string boardDirectory, string boardFileName)
+        public PrintToCSV (string boardDirectory, string boardFileName, TextBlock boardOutputTextBlock)
         {
             this.boardDirectory = boardDirectory;
             this.boardFileName = boardFileName;
+            this.boardTextBlock = boardOutputTextBlock;
         }
 
         private List<List<string>> outputList = new List<List<string>>();
@@ -265,20 +268,44 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
         public void WriteToCSV()
         {
             string outputFile = @"\__OUTPUT__ParsedLanes_" + boardFileName + ".csv";
-            using (var writer = new StreamWriter(boardDirectory + outputFile))
+            try
             {
-                // Write the board file name to begin
-                string boardFileNameHeader = "Board File:, " + boardFileName + ",";
-                writer.Write(boardFileNameHeader);
-
-                foreach (var row in outputList)
+                using (var writer = new StreamWriter(boardDirectory + outputFile))
                 {
-                    foreach (var item in row)
+                    // Write the board file name to begin
+                    string boardFileNameHeader = "Board File:, " + boardFileName + ",";
+                    writer.Write(boardFileNameHeader);
+
+                    foreach (var row in outputList)
                     {
-                        writer.Write(item);
+                        foreach (var item in row)
+                        {
+                            writer.Write(item);
+                        }
                     }
                 }
+
+                PrintHeaderToTextBlock("Program is now complete. Open the file" + outputFile);
             }
+            catch (IOException)
+            {
+                PrintHeaderToTextBlock("ERROR DETECTED");
+                boardTextBlock.Text += "The application cannot access the following file because it is open or being used by another precess. \n";
+                boardTextBlock.Text += boardDirectory + outputFile + "\n";
+                boardTextBlock.Text += "Please close the file " + outputFile + " and rerun the application.\n\n";
+            }
+            catch (Exception ex)
+            {
+                PrintHeaderToTextBlock("ERROR DETECTED");
+                boardTextBlock.Text += ex.Message;
+            }   
+        }
+
+        public void PrintHeaderToTextBlock(string message)
+        {
+            boardTextBlock.Text = "************************************************************************ \n";
+            boardTextBlock.Text += message + " \n";
+            boardTextBlock.Text += "************************************************************************ \n";
         }
     }
 }

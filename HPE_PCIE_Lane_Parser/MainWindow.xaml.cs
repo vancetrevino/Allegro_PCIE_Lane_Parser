@@ -126,15 +126,15 @@ namespace Allegro_PCIE_Lane_Parser
 
         private void AnalyzeBoardAndPrintCsvFile(ref TextBlock boardOutputTextBlock, string boardType, string boardDirectory, string boardFileName)
         {
-            boardOutputTextBlock.Text = "------------------------------------------------------------------------ \n\n";
-            boardOutputTextBlock.Text += "Now analyzing all of the generated Allegro Reports to parse the lanes. \n";
+            boardOutputTextBlock.Text = "------------------------------------------------------------------------ \n";
+            boardOutputTextBlock.Text += "Now analyzing and parsing all of the generated Allegro Reports. \n";
             // Parse the generated Allegro reports
-            AllegroReportParse parser = new AllegroReportParse(viaReportLocation, etchLengthReportLocation, pinPairReportLocation);
+            AllegroReportParse parser = new AllegroReportParse(viaReportLocation, etchLengthReportLocation, pinPairReportLocation, boardOutputTextBlock);
 
             // Merge all the data parsed from the Allegro reports 
-            MergeLaneInfo merge = new MergeLaneInfo();
+            MergeLaneInfo merge = new MergeLaneInfo(boardOutputTextBlock);
 
-            PrintToCSV csvPrint = new PrintToCSV(boardDirectory, boardFileName);
+            PrintToCSV csvPrint = new PrintToCSV(boardDirectory, boardFileName, boardOutputTextBlock);
 
             parser.ParsePinPairReport();
             parser.ParseLengthByLayerReport();
@@ -145,10 +145,9 @@ namespace Allegro_PCIE_Lane_Parser
             MainConnectorRefDes = parser.FindMainConnectorRefDes(pcieLaneInfoList, boardType);
             connectorRefDesHash = parser.FindConnectorsAttachedToMainConnector(pcieLaneInfoList, MainConnectorRefDes);        
 
-            boardOutputTextBlock.Text += "Finished parsing all reports. Please click 'Start/Run' to continue the program. \n";
-            boardOutputTextBlock.Text += "------------------------------------------------------------------------ \n\n";
-            boardOutputTextBlock.Text += "Now beginning to run the program. \n";
+            boardOutputTextBlock.Text += "Finished parsing all reports. Now beginning to merge all lanes. \n";
             boardOutputTextBlock.Text += "Exporting final lane data to a CSV file. \n";
+            boardOutputTextBlock.Text += "------------------------------------------------------------------------ \n";
 
             merge.MergePcieLanes(pcieLaneInfoList, pciePinPairIndexes, MainConnectorRefDes, connectorRefDesHash, boardType);
 
@@ -183,10 +182,6 @@ namespace Allegro_PCIE_Lane_Parser
             }
 
             csvPrint.WriteToCSV();
-
-            boardOutputTextBlock.Text += "************************************************************************ \n";
-            boardOutputTextBlock.Text += "Program is now complete. Open the '__OUTPUT__ParsedLanes.csv' file \n";
-            boardOutputTextBlock.Text += "************************************************************************ \n";
         }
     }
 }

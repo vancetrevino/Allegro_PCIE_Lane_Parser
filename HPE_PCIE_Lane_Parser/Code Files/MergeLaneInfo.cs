@@ -5,14 +5,17 @@ using System.Text;
 using System.Threading.Tasks;
 using Allegro_PCIE_Lane_Parser.Class_Files;
 using System.Text.RegularExpressions;
+using System.Windows.Controls;
 
 namespace Allegro_PCIE_Lane_Parser.Code_Files
 {
     internal class MergeLaneInfo
     {
-        public MergeLaneInfo()
-        {
+        private TextBlock boardTextBlock;
 
+        public MergeLaneInfo(TextBlock boardOutputTextBlock)
+        {
+            boardTextBlock = boardOutputTextBlock;
         }
 
         List<LaneGroup> aLaneGroupsComplete = new List<LaneGroup>();

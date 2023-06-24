@@ -134,7 +134,9 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
             {
                 string connectorPin = connPinPair.Split('.')[1];
 
-                Regex re = new Regex(@"([A-B]+)(\d+)");
+                //Regex re = new Regex(@"([A-B]+)(\d+)");
+                Regex re = new Regex(@"(\w+?)(\d+)");
+                //Regex re = new Regex(@"(.+?[A-B])(\d+)");
                 Match result = re.Match(connectorPin);
 
                 string connectorPinLetter = result.Groups[1].Value;

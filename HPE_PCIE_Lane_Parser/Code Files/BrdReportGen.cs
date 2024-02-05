@@ -14,9 +14,9 @@ namespace Allegro_PCIE_Lane_Parser
 {
     internal class BrdReportGen
     {
-        private string pinPairReport = "PinPairReport.csv";
-        private string viaReport = "ViaByNetReport.csv";
-        private string etchLengthReport = "EtchLengthByLayerReport.csv";
+        private readonly string pinPairReport = "PinPairReport.csv";
+        private readonly string viaReport = "ViaByNetReport.csv";
+        private readonly string etchLengthReport = "EtchLengthByLayerReport.csv";
 
         private bool pinPairFlag = false;
         private bool viaFlag = false;
@@ -131,12 +131,29 @@ namespace Allegro_PCIE_Lane_Parser
 
         public async void GeneratingStatus(ScrollViewer scrollViewer)
         {
+            int totalLineCnt = 0;
+            int sameLineCnt = 0;
+
             while (!pinPairFlag)
             {
+                sameLineCnt++;
                 await Task.Delay(2000);
                 CurrentReportStatus();
-                boardTextBlock.Text += "  --- Generating reports. Please wait.\n";
+                boardTextBlock.Text += "  --- Generating reports. Please wait.\t";
                 scrollViewer.ScrollToBottom();
+
+                if (sameLineCnt == 3)
+                {
+                    boardTextBlock.Text += "\n";
+                    totalLineCnt++;
+                    sameLineCnt = 0;
+                }
+
+                if (totalLineCnt == 10)
+                {
+                    boardTextBlock.Text += "\n  --- Program is still running.\n\n";
+                    totalLineCnt = 0;
+                }
             }
 
             boardTextBlock.Text += "**** All necessary reports have been generated. Click on 'Analyze Board & Start' to move to the next step. ****\n";

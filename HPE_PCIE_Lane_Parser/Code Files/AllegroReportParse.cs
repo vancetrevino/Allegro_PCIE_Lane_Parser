@@ -15,23 +15,29 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
         private string viaListReportLocation { get; set; }
         private string etchLenReportLocation { get; set; }
         private string pinPairReportLocation { get; set; }
-        private TextBlock boardTextBlock;
+        private TextBlock boardTextBlock { get; set; }
 
-        public AllegroReportParse(string viaListLocation, string etchLenLocation, string pinPairLocation, TextBlock boardOutputTextBlock)
+        private readonly string pcieNetIdentifier;
+        private readonly string clockNetIdentifier; 
+        private readonly string upiNetIdentifier;
+        private readonly string usbNetIdentifier; 
+        private readonly string positiveDiffPair; 
+        private readonly string negativeDiffPair;
+
+        public AllegroReportParse(string viaListLocation, string etchLenLocation, string pinPairLocation, TextBlock boardOutputTextBlock, UserProjectSettings userSettings)
         {
             viaListReportLocation = viaListLocation;
             etchLenReportLocation = etchLenLocation;
             pinPairReportLocation = pinPairLocation;
             boardTextBlock = boardOutputTextBlock;
+
+            pcieNetIdentifier = userSettings.pcieNetIdentifier;
+            clockNetIdentifier = userSettings.clockNetIdentifier;
+            upiNetIdentifier = userSettings.upiNetIdentifier;
+            usbNetIdentifier = userSettings.usbNetIdentifier;
+            positiveDiffPair = userSettings.positiveDiffPairIdentifier;
+            negativeDiffPair = userSettings.negativeDiffPairIdentifier;
         }
-
-        private string pcieNetIdentifier = "P5E";
-        private string clockNetIdentifier = "CLK";
-        private string upiNetIdentifier = "UPI";
-        private string usbNetIdentifier = "USB";
-        private string positiveDiffPair = "_DP";
-        private string negativeDiffPair = "_DN";
-
 
         // Extra variables
         MainWindow mw = (MainWindow)Application.Current.MainWindow;

@@ -9,9 +9,7 @@
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="493*"/>
-                <ColumnDefinition Width="116*"/>
-                <ColumnDefinition Width="235*"/>
+                
             </Grid.ColumnDefinitions>
             <TabControl Grid.ColumnSpan="3">
                 <TabItem>
@@ -63,9 +61,9 @@
                         </Border>
 
                         <DockPanel Grid.Column="1" Grid.Row="2" VerticalAlignment="Center">
-                            <Button x:Name="mlb_analyzeBoard" Click="mlb_analyzeBoard_Click" Padding="0,3,0,3" VerticalAlignment="Center" IsEnabled="False" Content="Analyze Board &amp; Start" HorizontalAlignment="Stretch" DockPanel.Dock="Top"/>
+                            <Button x:Name="mlb_analyzeBoard" Click="mlb_analyzeBoard_Click" Padding="0,5,0,5" VerticalAlignment="Center" IsEnabled="False" Content="Analyze Board &amp; Start" HorizontalAlignment="Stretch" DockPanel.Dock="Top"/>
                         </DockPanel>
-                        <Button Name="mlb_settings" Click="mlb_settings_Click"  Grid.Column="1" Grid.Row="2" Padding="0,3,0,3" VerticalAlignment="Bottom">Settings</Button>
+                        <Button Name="mlb_settings" Click="settings_Click"  Grid.Column="1" Grid.Row="2" Padding="0,5,0,5" VerticalAlignment="Bottom">Settings</Button>
                     </Grid>
                 </TabItem>
 
@@ -117,9 +115,9 @@
                         </Border>
 
                         <DockPanel Grid.Column="1" Grid.Row="2" VerticalAlignment="Center">
-                            <Button x:Name="riser_analyzeBoard" Click="riser_analyzeBoard_Click" Padding="0,3,0,3" VerticalAlignment="Center" IsEnabled="False" Content="Analyze Board &amp; Start" HorizontalAlignment="Stretch" DockPanel.Dock="Top"/>
+                            <Button x:Name="riser_analyzeBoard" Click="riser_analyzeBoard_Click" Padding="0,5,0,5" VerticalAlignment="Center" IsEnabled="False" Content="Analyze Board &amp; Start" HorizontalAlignment="Stretch" DockPanel.Dock="Top"/>
                         </DockPanel>
-                        <Button Name="riser_settings" Click="riser_settings_Click"  Grid.Column="1" Grid.Row="2" Padding="0,3,0,3" VerticalAlignment="Bottom">Settings</Button>
+                        <Button Name="riser_settings" Click="settings_Click"  Grid.Column="1" Grid.Row="2" Padding="0,5,0,5" VerticalAlignment="Bottom">Settings</Button>
 
                     </Grid>
 

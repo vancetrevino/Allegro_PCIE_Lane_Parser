@@ -49,14 +49,17 @@ namespace Allegro_PCIE_Lane_Parser
 
         Dictionary<string, int> pciePinPairIndexes = new Dictionary<string, int>();
 
+        UserProjectSettings userSettings = new UserProjectSettings();
+
         public MainWindow()
         {
             InitializeComponent();
         }
 
-        private void mlb_settings_Click(object sender, RoutedEventArgs e)
+        private void settings_Click(object sender, RoutedEventArgs e)
         {
-
+            SettingsWindow subWindow = new SettingsWindow();
+            subWindow.Show();
         }
 
         private void mlb_btnOpenFile_Click(object sender, RoutedEventArgs e)
@@ -67,11 +70,6 @@ namespace Allegro_PCIE_Lane_Parser
         private void mlb_analyzeBoard_Click(object sender, RoutedEventArgs e)
         {
             AnalyzeBoardAndPrintCsvFile(ref mlb_textBlock, "mlb", mlb_directory, mlb_fileName);
-        }
-
-        private void riser_settings_Click(object sender, RoutedEventArgs e)
-        {
-
         }
 
         private void riser_btnOpenFile_Click(object sender, RoutedEventArgs e)
@@ -108,7 +106,7 @@ namespace Allegro_PCIE_Lane_Parser
                 boardOutputTextBlock.Text += "------------------------------------------------------------------------ \n\n";
 
                 // Allegro report check and generation 
-                BrdReportGen boardReports = new BrdReportGen(boardDirectory, @"C:\Cadence\SPB_17.2\tools\bin", analyzeBoardButton, boardOutputTextBlock);
+                BrdReportGen boardReports = new BrdReportGen(boardDirectory, userSettings.cadenceToolLocation, analyzeBoardButton, boardOutputTextBlock);
                 bool reportCheck = boardReports.SearchForAllReports();
                 if (!reportCheck)
                 {
@@ -129,7 +127,7 @@ namespace Allegro_PCIE_Lane_Parser
             boardOutputTextBlock.Text = "------------------------------------------------------------------------ \n";
             boardOutputTextBlock.Text += "Now analyzing and parsing all of the generated Allegro Reports. \n";
             // Parse the generated Allegro reports
-            AllegroReportParse parser = new AllegroReportParse(viaReportLocation, etchLengthReportLocation, pinPairReportLocation, boardOutputTextBlock);
+            AllegroReportParse parser = new AllegroReportParse(viaReportLocation, etchLengthReportLocation, pinPairReportLocation, boardOutputTextBlock, userSettings);
 
             // Merge all the data parsed from the Allegro reports 
             MergeLaneInfo merge = new MergeLaneInfo(boardOutputTextBlock);

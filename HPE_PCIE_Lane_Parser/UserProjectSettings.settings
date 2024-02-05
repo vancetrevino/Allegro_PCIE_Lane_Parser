@@ -1,0 +1,27 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Allegro_PCIE_Lane_Parser" GeneratedClassName="userProjectSettings">
+  <Profiles />
+  <Settings>
+    <Setting Name="cadenceToolLocation" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Cadence\SPB_17.2\tools\bin</Value>
+    </Setting>
+    <Setting Name="pcieNetIdentifier" Type="System.String" Scope="User">
+      <Value Profile="(Default)">P5E</Value>
+    </Setting>
+    <Setting Name="clockNetIdentifier" Type="System.String" Scope="User">
+      <Value Profile="(Default)">CLK</Value>
+    </Setting>
+    <Setting Name="upiNetIdentifier" Type="System.String" Scope="User">
+      <Value Profile="(Default)">UPI</Value>
+    </Setting>
+    <Setting Name="usbNetIdentifier" Type="System.String" Scope="User">
+      <Value Profile="(Default)">USB</Value>
+    </Setting>
+    <Setting Name="positiveDiffPairIdentifier" Type="System.String" Scope="User">
+      <Value Profile="(Default)">_DP</Value>
+    </Setting>
+    <Setting Name="negativeDiffPairIdentifier" Type="System.String" Scope="User">
+      <Value Profile="(Default)">_DN</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

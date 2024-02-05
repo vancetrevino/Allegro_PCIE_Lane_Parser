@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Forms;
+using System.IO;
 
 namespace Allegro_PCIE_Lane_Parser
 {
@@ -42,7 +45,29 @@ namespace Allegro_PCIE_Lane_Parser
 
         private void tools_btnOpenFile_Click(object sender, RoutedEventArgs e)
         {
+            FolderBrowserDialog openFolderBrowserDialog = new FolderBrowserDialog();
+            DialogResult dialogResult = openFolderBrowserDialog.ShowDialog();
+            bool validDirectoryLocation = false;
 
+            // Get the selected file name and display in a TextBox.
+            // Load content of file in a TextBlock
+            if ((dialogResult == System.Windows.Forms.DialogResult.OK) && (!string.IsNullOrWhiteSpace(openFolderBrowserDialog.SelectedPath))) 
+            {
+                FileAttributes attributes = File.GetAttributes(openFolderBrowserDialog.SelectedPath);
+
+                if (attributes.HasFlag(FileAttributes.Directory))
+                {
+                    validDirectoryLocation = true;
+                    text_toolsLocation.Foreground = Brushes.Black;
+                    text_toolsLocation.Text = openFolderBrowserDialog.SelectedPath;
+                }
+            }
+            
+            if (!validDirectoryLocation)
+            {
+                text_toolsLocation.Foreground = Brushes.Red;
+                text_toolsLocation.Text = "Invalid folder location. Please select a valid folder. ";
+            }
         }
 
         private void btn_saveSettings_Click(object sender, RoutedEventArgs e)
@@ -50,7 +75,7 @@ namespace Allegro_PCIE_Lane_Parser
             bool validSave = false;
             savedStatus.Visibility = Visibility.Hidden;
 
-            foreach (var item in settings_StackPanel.Children.OfType<TextBox>())
+            foreach (var item in settings_StackPanel.Children.OfType<System.Windows.Controls.TextBox>())
             {
                 validSave = (item.Text != string.Empty) ? true : false;
                 if (!validSave) { break; }

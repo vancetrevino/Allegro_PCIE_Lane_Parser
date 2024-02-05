@@ -215,7 +215,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 completeLaneGroup.CalcTotalViaCount();
 
                 // For UPI lane sorting
-                if (groupType == "UPI")
+                if (groupType == "UPI" || groupType == "UXI")
                 {
                     if (lane.NetName.Contains("CPU1_CPU0") || lane.NetName.Contains("_RT_") || lane.NetName.Contains("_RX_"))
                     {
@@ -272,7 +272,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
         public void CheckGroupsForMissingLayers(List<LaneGroup> laneGroup)
         {
             string? currentGroupName = "";
-            var lastLane = laneGroup.Last();
+            var lastLane = laneGroup.Last(); // Add check for no items at all in list.
             List<LaneGroup> tempLaneGroup = new List<LaneGroup>();
             HashSet<string> firstLayerHashSet = new HashSet<string>();
             HashSet<string> secondLayerHashSet = new HashSet<string>();

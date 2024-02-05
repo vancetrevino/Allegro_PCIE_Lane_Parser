@@ -35,7 +35,7 @@ namespace Allegro_PCIE_Lane_Parser.Class_Files
             SecondViaCount = secondViaCount;
             TotalViaCount = "0";
 
-            // This purly for UPI/CLK/USB net name ordering
+            // This purely for UPI/CLK/USB net name ordering
             NetToOrderBy = "";
         }
 

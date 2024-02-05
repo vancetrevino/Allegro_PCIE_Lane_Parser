@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Allegro_PCIE_Lane_Parser"
         mc:Ignorable="d"
-        Title="Project Settings" Width="400" Background="White" MinWidth="400" MinHeight="475" Height="500" ScrollViewer.VerticalScrollBarVisibility="Auto">
+        Title="Project Settings" Width="485" Background="White" MinWidth="400" MinHeight="475" Height="500" ScrollViewer.VerticalScrollBarVisibility="Auto">
     <StackPanel x:Name="settings_StackPanel" Margin="10,10,10,10" CanVerticallyScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto">
         <StackPanel.Resources>
             <Style TargetType="{x:Type TextBox}">
@@ -14,10 +14,11 @@
         </StackPanel.Resources>
 
 
-        <Label x:Name="label_TBA" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Left" VerticalAlignment="Center"
-                   Content="To be added -- Text to describe the purpose of the project settings. " Margin="0,0,0,7" />
+        <TextBlock x:Name="label_TBA" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" VerticalAlignment="Center" 
+                    Padding="0,5,5,5" TextWrapping="WrapWithOverflow" Text="The 'Settings' shown below are used by the program to parse each report file and obtain pertinent information. Please only change if necessary. Default values are shown in parentheses above textboxes. "/>
 
-        <Label x:Name="label_toolsLocation" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" Content="Cadence 'Tools' file location" VerticalAlignment="Center" Padding="0,0,0,3"/>
+        <Border BorderThickness=".5" BorderBrush="Black" Margin="0,0,0,7"></Border>
+        <Label x:Name="label_toolsLocation" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" Content="Cadence 'Tools' Folder Location -- (C:\Cadence\SPB_17.2\tools\bin)" VerticalAlignment="Center" Padding="0,0,0,3"/>
         <Grid x:Name="toolsGrid" Grid.Column="1" Grid.Row="1" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="9*"/>
@@ -28,22 +29,22 @@
         </Grid>
 
 
-        <Label x:Name="label_pcieNetIdentifier" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Left" Content="PCIE Net Identifier" VerticalAlignment="Center" Padding="0,0,0,3"/>
+        <Label x:Name="label_pcieNetIdentifier" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Left" Content="PCIE Net Identifier -- (P5E)" VerticalAlignment="Center" Padding="0,0,0,3"/>
         <TextBox x:Name="text_pcieNetIdentifier" Grid.Column="1" Grid.Row="2" TextWrapping="Wrap" Text="{Binding textValue}" Width="auto" VerticalAlignment="Center" />
 
-        <Label x:Name="label_upiNetIdentifier" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Left" Content="UPI Net Identifier" VerticalAlignment="Center" Padding="0,0,0,3"/>
+        <Label x:Name="label_upiNetIdentifier" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Left" Content="UPI Net Identifier -- (UPI)" VerticalAlignment="Center" Padding="0,0,0,3"/>
         <TextBox x:Name="text_upiNetIdentifier" Grid.Column="1" Grid.Row="3" TextWrapping="Wrap" Text="{Binding textValue}" Width="auto" VerticalAlignment="Center" />
 
-        <Label x:Name="label_usbNetIdentifier" Grid.Column="0" Grid.Row="4" HorizontalAlignment="Left" Content="USB Net Identifier" VerticalAlignment="Center" Padding="0,0,0,3"/>
+        <Label x:Name="label_usbNetIdentifier" Grid.Column="0" Grid.Row="4" HorizontalAlignment="Left" Content="USB Net Identifier -- (USB)" VerticalAlignment="Center" Padding="0,0,0,3"/>
         <TextBox x:Name="text_usbNetIdentifier" Grid.Column="1" Grid.Row="4" TextWrapping="Wrap" Text="{Binding textValue}" Width="auto" VerticalAlignment="Center" />
 
-        <Label x:Name="label_clockNetIdentifier" Grid.Column="0" Grid.Row="5" HorizontalAlignment="Left" Content="Clock Net Identifier" VerticalAlignment="Center" Padding="0,0,0,3"/>
+        <Label x:Name="label_clockNetIdentifier" Grid.Column="0" Grid.Row="5" HorizontalAlignment="Left" Content="Clock Net Identifier -- (CLK)" VerticalAlignment="Center" Padding="0,0,0,3"/>
         <TextBox x:Name="text_clockNetIdentifier" Grid.Column="1" Grid.Row="5" TextWrapping="Wrap" Text="{Binding textValue}" Width="auto" VerticalAlignment="Center" />
 
-        <Label x:Name="label_positiveDiffPair" Grid.Column="0" Grid.Row="6" HorizontalAlignment="Left" Content="Positive DiffPair Identifier" VerticalAlignment="Center" Padding="0,0,0,3"/>
+        <Label x:Name="label_positiveDiffPair" Grid.Column="0" Grid.Row="6" HorizontalAlignment="Left" Content="Positive DiffPair Identifier -- (_DP)" VerticalAlignment="Center" Padding="0,0,0,3"/>
         <TextBox x:Name="text_positiveDiffPair" Grid.Column="1" Grid.Row="6" TextWrapping="Wrap" Text="{Binding textValue}" Width="auto" VerticalAlignment="Center" />
 
-        <Label x:Name="label_negativeDiffPair" Grid.Column="0" Grid.Row="7" HorizontalAlignment="Left" Content="Negative DiffPair Identifier" VerticalAlignment="Center" Padding="0,0,0,2"/>
+        <Label x:Name="label_negativeDiffPair" Grid.Column="0" Grid.Row="7" HorizontalAlignment="Left" Content="Negative DiffPair Identifier -- (_DN)" VerticalAlignment="Center" Padding="0,0,0,2"/>
         <TextBox x:Name="text_negativeDiffPair" Grid.Column="1" Grid.Row="7" TextWrapping="Wrap" Text="{Binding textValue}" Width="auto" VerticalAlignment="Center" />
 
         <Label x:Name="savedStatus" Content="" HorizontalAlignment="Center" Padding="0,0,0,0" Foreground="#FF27B700" Visibility="Hidden"/>

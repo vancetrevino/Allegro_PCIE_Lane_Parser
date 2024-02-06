@@ -303,7 +303,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
         public void PrintHeaderToTextBlock(string message)
         {
-            boardTextBlock.Text = "************************************************************************ \n";
+            boardTextBlock.Text += "\n\n\n************************************************************************ \n";
             boardTextBlock.Text += message + " \n";
             boardTextBlock.Text += "************************************************************************ \n";
         }

@@ -16,6 +16,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using Allegro_PCIE_Lane_Parser.Code_Files;
 using Allegro_PCIE_Lane_Parser.Class_Files;
+using HPE_High_Speed_Lane_Parser;
+using System.Configuration;
 
 namespace Allegro_PCIE_Lane_Parser
 {
@@ -124,6 +126,7 @@ namespace Allegro_PCIE_Lane_Parser
 
         private void AnalyzeBoardAndPrintCsvFile(ref TextBlock boardOutputTextBlock, string boardType, string boardDirectory, string boardFileName)
         {
+            userSettings.Reload();
             boardOutputTextBlock.Text = "------------------------------------------------------------------------ \n";
             boardOutputTextBlock.Text += "Now analyzing and parsing all of the generated Allegro Reports. \n";
             // Parse the generated Allegro reports

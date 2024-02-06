@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Forms;
 using System.IO;
+using HPE_High_Speed_Lane_Parser;
 
 namespace Allegro_PCIE_Lane_Parser
 {
@@ -96,6 +97,7 @@ namespace Allegro_PCIE_Lane_Parser
                 //Brushes.LawnGreen         FF27B700;
                 savedStatus.Visibility = Visibility.Visible;
                 userSettings.Save();
+                userSettings.Reload();
             }
             else
             {

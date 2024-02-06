@@ -297,45 +297,56 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
         public void CheckGroupsForMissingLayers(List<LaneGroup> laneGroup)
         {
-            string? currentGroupName = "";
-            var lastLane = laneGroup.Last(); // Add check for no items at all in list.
-            List<LaneGroup> tempLaneGroup = new List<LaneGroup>();
-            HashSet<string> firstLayerHashSet = new HashSet<string>();
-            HashSet<string> secondLayerHashSet = new HashSet<string>();
-
-            for (var i = 0; i < laneGroup.Count() - 1; i++)
+            
+            try
             {
-                LaneGroup lane = laneGroup[i];
-                LaneGroup nextLane = laneGroup[i + 1];
+                string? currentGroupName = "";
+                var lastLane = laneGroup.Last();
+                List<LaneGroup> tempLaneGroup = new List<LaneGroup>();
+                HashSet<string> firstLayerHashSet = new HashSet<string>();
+                HashSet<string> secondLayerHashSet = new HashSet<string>();
 
-                tempLaneGroup.Add(lane);
-
-                foreach (var layer in lane.FirstLayerAndLengths)
+                for (var i = 0; i < laneGroup.Count() - 1; i++)
                 {
-                    firstLayerHashSet.Add(layer.Key);
-                }
+                    LaneGroup lane = laneGroup[i];
+                    LaneGroup nextLane = laneGroup[i + 1];
 
-                foreach (var layer in lane.SecondLayerAndLengths)
-                {
-                    secondLayerHashSet.Add(layer.Key);
-                }
+                    tempLaneGroup.Add(lane);
 
-                if (nextLane.GroupName != currentGroupName || nextLane == lastLane)
-                {
-                    // In the event that the next lane is the last lane in the sequence, add the last lane to the tempLaneGroup
-                    if (nextLane == lastLane) { tempLaneGroup.Add(lastLane); }
-                    InsertMissingLayersToGroup(tempLaneGroup, firstLayerHashSet, secondLayerHashSet);
-
-                    currentGroupName = nextLane.GroupName;
-
-                    // Do not clear on the very first iteration, and execute a clear on all the others
-                    if (i != 0)
+                    foreach (var layer in lane.FirstLayerAndLengths)
                     {
-                        tempLaneGroup.Clear();
-                        firstLayerHashSet.Clear();
-                        secondLayerHashSet.Clear();
+                        firstLayerHashSet.Add(layer.Key);
+                    }
+
+                    foreach (var layer in lane.SecondLayerAndLengths)
+                    {
+                        secondLayerHashSet.Add(layer.Key);
+                    }
+
+                    if (nextLane.GroupName != currentGroupName || nextLane == lastLane)
+                    {
+                        // In the event that the next lane is the last lane in the sequence, add the last lane to the tempLaneGroup
+                        if (nextLane == lastLane) { tempLaneGroup.Add(lastLane); }
+                        InsertMissingLayersToGroup(tempLaneGroup, firstLayerHashSet, secondLayerHashSet);
+
+                        currentGroupName = nextLane.GroupName;
+
+                        // Do not clear on the very first iteration, and execute a clear on all the others
+                        if (i != 0)
+                        {
+                            tempLaneGroup.Clear();
+                            firstLayerHashSet.Clear();
+                            secondLayerHashSet.Clear();
+                        }
                     }
                 }
+            } catch (Exception ex)
+            {
+                boardTextBlock.Text += "\n***** ERROR *****\n";
+                boardTextBlock.Text += "The program could not find/parse any high speed lanes\n";
+                boardTextBlock.Text += "Please check the 'Settings' to verify that the correct identifiers are used in relation to your board.";
+                boardTextBlock.Text += "If error persists, please check that your high speed lanes are fully connected.";
+                //boardTextBlock.Text += ex.Message;
             }
         }
 

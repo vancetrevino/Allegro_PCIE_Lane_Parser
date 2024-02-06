@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Allegro_PCIE_Lane_Parser {
+namespace HPE_High_Speed_Lane_Parser {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

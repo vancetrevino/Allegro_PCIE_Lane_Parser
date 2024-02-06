@@ -80,13 +80,13 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
 
             var aLanesInOrderCpu0 = aSideLanesCpu0.OrderBy(lanes => lanes.PinPair);
             var aLanesInOrderCpu1 = aSideLanesCpu1.OrderBy(lanes => lanes.PinPair);
-            var aRiserLanesInOrderCpu0 = aSideRiserLanesCpu0.OrderByDescending(lanes => lanes.PinPair);
-            var aRiserLanesInOrderCpu1 = aSideRiserLanesCpu1.OrderByDescending(lanes => lanes.PinPair);
+            var aRiserLanesInOrderCpu0 = aSideRiserLanesCpu0.OrderByDescending(lanes => lanes.NetToOrderBy);
+            var aRiserLanesInOrderCpu1 = aSideRiserLanesCpu1.OrderByDescending(lanes => lanes.NetToOrderBy);
 
             var bLanesInOrderCpu0 = bSideLanesCpu0.OrderBy(lanes => lanes.PinPair);
             var bLanesInOrderCpu1 = bSideLanesCpu1.OrderBy(lanes => lanes.PinPair);
-            var bRiserLanesInOrderCpu0 = bSideRiserLanesCpu0.OrderByDescending(lanes => lanes.PinPair);
-            var bRiserLanesInOrderCpu1 = bSideRiserLanesCpu1.OrderByDescending(lanes => lanes.PinPair);
+            var bRiserLanesInOrderCpu0 = bSideRiserLanesCpu0.OrderByDescending(lanes => lanes.NetToOrderBy);
+            var bRiserLanesInOrderCpu1 = bSideRiserLanesCpu1.OrderByDescending(lanes => lanes.NetToOrderBy);
 
             aLaneGroupsComplete.AddRange(aLanesInOrderCpu0);
             aLaneGroupsComplete.AddRange(aRiserLanesInOrderCpu0);
@@ -187,6 +187,17 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
         public void SortLaneByConnectorSide(string connPinPair, ref List<LaneGroup>  aSideLanes, ref List<LaneGroup>  bSideLanes, ref LaneGroup completeLaneGroup, 
                                             ref List<LaneGroup> aSideRiserLanes, ref List<LaneGroup> bSideRiserLanes)
         {
+            // NetToOrderBy is only use in the case where the connector has an underscore in their pin numberings. 
+            string connRefDes = connPinPair.Split(".")[0];
+            if (connPinPair.Contains(".B"))
+            {
+                completeLaneGroup.NetToOrderBy = connRefDes + "AA" + connPinPair;
+            }
+            else if (connPinPair.Contains(".A"))
+            {
+                completeLaneGroup.NetToOrderBy = connRefDes + "AB" + connPinPair;
+            }
+
             if (connPinPair.Contains(".B_A") || connPinPair.Contains(".A_A"))
             {
                 aSideRiserLanes.Add(completeLaneGroup);

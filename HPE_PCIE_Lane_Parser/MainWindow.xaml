@@ -100,6 +100,7 @@
                                     <Run Text="-- Written by Vance Trevino"/><LineBreak/><Run/><LineBreak/>
                                     <Run Text="The tools works as follows:"/><LineBreak/>
                                     <Run Text="  1. Click the &quot;Open File&quot; button and navigate to the Allegro layout board file that you would like to parse PCIE lanes for."/><LineBreak/>
+                                    <Run Text="     -- IMPORTANT: This tool is built to only parse one board file at a time. Please make sure there is only one board file in your directory."/><LineBreak/>
                                     <Run Text="  2. If a valid board file with the extension (.brd) is detected, the tool will begin to check if the necessary Allegro reports are in the corresponding folder. "/><LineBreak/>
                                     <Run Text="  3. If one or more Allegro reports are missing, then the tool will begin generating the reports."/><LineBreak/>
                                     <Run Text="  4. Once all reports have been generated, the &quot;Analyze Board &amp; Start&quot; button will become accessible."/><LineBreak/>

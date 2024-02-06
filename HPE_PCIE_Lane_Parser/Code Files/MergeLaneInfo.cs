@@ -28,9 +28,13 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
         {
             List<LaneGroup> aSideLanesCpu0 = new List<LaneGroup>();
             List<LaneGroup> aSideLanesCpu1 = new List<LaneGroup>();
+            List<LaneGroup> aSideRiserLanesCpu0 = new List<LaneGroup>();
+            List<LaneGroup> aSideRiserLanesCpu1 = new List<LaneGroup>();
 
             List<LaneGroup> bSideLanesCpu0 = new List<LaneGroup>();
             List<LaneGroup> bSideLanesCpu1 = new List<LaneGroup>();
+            List<LaneGroup> bSideRiserLanesCpu0 = new List<LaneGroup>();
+            List<LaneGroup> bSideRiserLanesCpu1 = new List<LaneGroup>();
 
             foreach (var lane in pcieLanesInfo)
             {
@@ -49,6 +53,7 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                         pinToCheck = lane.PinPairStart;
                         ParseLaneIntoLaneGroupAndMerge(pcieLanesInfo, lane, pinPairIndexes, mainConnRefDes,
                                                 ref aSideLanesCpu0, ref aSideLanesCpu1, ref bSideLanesCpu0, ref bSideLanesCpu1,
+                                                ref aSideRiserLanesCpu0, ref aSideRiserLanesCpu1, ref bSideRiserLanesCpu0, ref bSideRiserLanesCpu1,
                                                 boardType, connPinPair, pinToCheck);
 
                         connPinPair = lane.PinPairEnd;
@@ -68,24 +73,35 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                     // For all other cases, just create a single LaneGroup object to sort. 
                     ParseLaneIntoLaneGroupAndMerge(pcieLanesInfo, lane, pinPairIndexes, mainConnRefDes,
                                                 ref aSideLanesCpu0, ref aSideLanesCpu1, ref bSideLanesCpu0, ref bSideLanesCpu1,
+                                                ref aSideRiserLanesCpu0, ref aSideRiserLanesCpu1, ref bSideRiserLanesCpu0, ref bSideRiserLanesCpu1,
                                                 boardType, connPinPair, pinToCheck);
                 }
             }
 
             var aLanesInOrderCpu0 = aSideLanesCpu0.OrderBy(lanes => lanes.PinPair);
             var aLanesInOrderCpu1 = aSideLanesCpu1.OrderBy(lanes => lanes.PinPair);
+            var aRiserLanesInOrderCpu0 = aSideRiserLanesCpu0.OrderByDescending(lanes => lanes.PinPair);
+            var aRiserLanesInOrderCpu1 = aSideRiserLanesCpu1.OrderByDescending(lanes => lanes.PinPair);
+
             var bLanesInOrderCpu0 = bSideLanesCpu0.OrderBy(lanes => lanes.PinPair);
             var bLanesInOrderCpu1 = bSideLanesCpu1.OrderBy(lanes => lanes.PinPair);
+            var bRiserLanesInOrderCpu0 = bSideRiserLanesCpu0.OrderByDescending(lanes => lanes.PinPair);
+            var bRiserLanesInOrderCpu1 = bSideRiserLanesCpu1.OrderByDescending(lanes => lanes.PinPair);
 
             aLaneGroupsComplete.AddRange(aLanesInOrderCpu0);
+            aLaneGroupsComplete.AddRange(aRiserLanesInOrderCpu0);
             aLaneGroupsComplete.AddRange(aLanesInOrderCpu1);
+            aLaneGroupsComplete.AddRange(aRiserLanesInOrderCpu1);
 
             bLaneGroupsComplete.AddRange(bLanesInOrderCpu0);
+            bLaneGroupsComplete.AddRange(bRiserLanesInOrderCpu0);
             bLaneGroupsComplete.AddRange(bLanesInOrderCpu1);
+            bLaneGroupsComplete.AddRange(bRiserLanesInOrderCpu1);
         }
 
         public void ParseLaneIntoLaneGroupAndMerge(List<DiffPairLane> pcieLanesInfo, DiffPairLane pcieLane, Dictionary<string, int> pinPairIndexes, string[] mainConnRefDes,
                                                 ref List<LaneGroup> aSideLanesCpu0, ref List<LaneGroup> aSideLanesCpu1, ref List<LaneGroup> bSideLanesCpu0, ref List<LaneGroup> bSideLanesCpu1,
+                                                ref List<LaneGroup> aSideRiserLanesCpu0, ref List<LaneGroup> aSideRiserLanesCpu1, ref List<LaneGroup> bSideRiserLanesCpu0, ref List<LaneGroup> bSideRiserLanesCpu1,
                                                 string boardType, string connPinPair, string pinToCheck)
         {
             string startingNet = "";
@@ -135,8 +151,9 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
                 string connectorPin = connPinPair.Split('.')[1];
 
                 //Regex re = new Regex(@"([A-B]+)(\d+)");
-                Regex re = new Regex(@"(\w+?)(\d+)");
                 //Regex re = new Regex(@"(.+?[A-B])(\d+)");
+
+                Regex re = new Regex(@"(\w+?)(\d+)");
                 Match result = re.Match(connectorPin);
 
                 string connectorPinLetter = result.Groups[1].Value;
@@ -158,22 +175,31 @@ namespace Allegro_PCIE_Lane_Parser.Code_Files
             // Sort each lane into its respective CPU identifier. If no CPU, then sort into CPU0 by default
             if (pcieLane.NetName.Contains("CPU1"))
             {
-                SortLaneByConnectorSide(connPinPair, ref aSideLanesCpu1, ref bSideLanesCpu1, ref completeLaneGroup);
+                SortLaneByConnectorSide(connPinPair, ref aSideLanesCpu1, ref bSideLanesCpu1, ref completeLaneGroup, ref aSideRiserLanesCpu1, ref bSideRiserLanesCpu1);
             }
             else
             {
-                SortLaneByConnectorSide(connPinPair, ref aSideLanesCpu0, ref bSideLanesCpu0, ref completeLaneGroup);
+                SortLaneByConnectorSide(connPinPair, ref aSideLanesCpu0, ref bSideLanesCpu0, ref completeLaneGroup, ref aSideRiserLanesCpu0, ref bSideRiserLanesCpu0);
             }
         }
 
 
-        public void SortLaneByConnectorSide(string connPinPair, ref List<LaneGroup>  aSideLanes, ref List<LaneGroup>  bSideLanes, ref LaneGroup completeLaneGroup)
+        public void SortLaneByConnectorSide(string connPinPair, ref List<LaneGroup>  aSideLanes, ref List<LaneGroup>  bSideLanes, ref LaneGroup completeLaneGroup, 
+                                            ref List<LaneGroup> aSideRiserLanes, ref List<LaneGroup> bSideRiserLanes)
         {
-            if ((connPinPair.Contains(".B_A") || connPinPair.Contains(".A")) && !(connPinPair.Contains(".A_B")))
+            if (connPinPair.Contains(".B_A") || connPinPair.Contains(".A_A"))
+            {
+                aSideRiserLanes.Add(completeLaneGroup);
+            }
+            else if (connPinPair.Contains(".B_B") || connPinPair.Contains(".A_B"))
+            {
+                bSideRiserLanes.Add(completeLaneGroup);
+            }
+            else if (connPinPair.Contains(".A")) 
             {
                 aSideLanes.Add(completeLaneGroup);
             }
-            else if ((connPinPair.Contains(".A_B") || connPinPair.Contains(".B")) && !(connPinPair.Contains(".B_A")))
+            else if (connPinPair.Contains(".B"))
             {
                 bSideLanes.Add(completeLaneGroup);
             }

@@ -6,7 +6,21 @@
     <Nullable>enable</Nullable>
 	<UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
+	<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+	<ApplicationIcon>Icons\foundation-preview-brand.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\AllegroReportGenerator_CmdPrompt.bat" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Icons\foundation-preview-brand.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\AllegroReportGenerator_CmdPrompt.bat" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Update="userProjectSettings.Designer.cs">
